@@ -1,0 +1,48 @@
+= Basic Concepts
+
+Starling might be a compact framework, but it still boasts a significant number of packages and classes.
+It is built around several basic concepts that are designed to complement and extend each other.
+Together, they provide you with a set of tools that empower you to create any application you can imagine.
+
+Display Programming:: Every object that is rendered on the screen is a _display object_, organized in the _display list_.
+Textures & Images:: To bring pixels, forms and colors to the screen, you will learn to use the _Texture_ and _Image_ classes.
+Dynamic Text:: Rendering of dynamic text is a basic task in almost every application.
+Event Handling:: Communication is key! Your display objects need to talk to each other, and they can do that via Starling's powerful event system.
+Animation:: Bring some motion into the picture! There are different strategies to animate your display objects.
+Asset Management:: Learn how to load and organize all kinds of assets, like textures and sounds.
+Special Effects:: Effects and filters that will make your graphics stand out.
+Utilities:: A number of helpers to make your life easier.
+
+We've got a lot of ground to cover, so, in the words of Super Mario: "Lets-a-go!"
+
+include::configuring-starling.adoc[]
+
+include::display-programming.adoc[]
+
+include::textures-and-images.adoc[]
+
+include::dynamic-text.adoc[]
+
+include::event-handling.adoc[]
+
+include::animations.adoc[]
+
+include::asset-management.adoc[]
+
+include::fragment-filters.adoc[]
+
+include::meshes.adoc[]
+
+include::masks.adoc[]
+
+include::sprite3d.adoc[]
+
+include::utilities.adoc[]
+
+== Summary
+
+You are now familiar with all the basic concepts of the Starling Framework.
+This is all the knowledge you need to get started with that game you have in your head, or with that app that's waiting to be created.
+
+On the other hand, there are still a few tricks up the sleeves of our little bird (birds have sleeves?).
+If you're ready to jump into those advanced topics, please follow my lead.

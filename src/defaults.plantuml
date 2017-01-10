@@ -1,0 +1,5 @@
+skinParam classArrowColor Black
+skinParam classBorderColor Black
+skinParam classFontName Ubuntu
+skinparam classFontSize 13
+hide members

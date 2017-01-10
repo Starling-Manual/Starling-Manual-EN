@@ -1,0 +1,221 @@
+== Asset Management
+
+One thing should be clear by now: textures make up a big part of every application's resources.
+Especially games require a lot of graphics; from the user interface to the characters, items, backgrounds, etc.
+But that's not all: you will probably need to manage sounds and configuration files, too.
+
+For referencing these assets, you've got several choices.
+
+* Embed them right inside the application (via the `[Embed]` meta data).
+* Load them from disk (only possible for AIR applications).
+* Load them from an URL, e.g. from a webserver.
+
+Since every option requires different code (depending on the asset type and loading mechanism), it's difficult to access the assets in a uniform way.
+Thankfully, Starling contains a class that helps you with that: the _AssetManager_.
+
+It supports the following types of assets:
+
+* Textures (either from Bitmaps or ATF data)
+* Texture atlases
+* Bitmap Fonts
+* Sounds
+* XML data
+* JSON data
+* ByteArrays
+
+To accomplish this, the AssetManager uses a three-step approach:
+
+1. You add pointers to your assets to a queue, e.g. `File` objects or URLs.
+2. You tell the AssetManager to process the queue.
+3. As soon as the queue finishes processing, you can access all assets with corresponding `get`-methods.
+
+[TIP]
+====
+The AssetManager contains a `verbose` property.
+If enabled, all steps of the enqueuing and loading process will be traced to the console.
+That's very useful for debugging, or if you don't understand why a certain asset is not showing up!
+For that reason, the latest Starling versions have it enabled per default.
+====
+
+=== Enqueuing the Assets
+
+The first step is to enqueue all the assets you want to use.
+How that's done exactly depends on the type and origin of each asset.
+
+==== Assets from disk or from the network
+
+Enqueuing **files** from disk or from a remote server is rather straight-forward:
+
+[source, as3]
+----
+// Enqueue an asset from a remote URL
+assets.enqueue("http://gamua.com/img/starling.jpg");
+
+// Enqueue an asset from disk (AIR only)
+var appDir:File = File.applicationDirectory;
+assets.enqueue(appDir.resolvePath("sounds/music.mp3"));
+
+// Enqueue all contents of a directory, recursively (AIR only).
+assets.enqueue(appDir.resolvePath("textures"));
+----
+
+To load a **texture atlas**, just enqueue both its XML file and the corresponding texture.
+Just make sure that the `imagePath` attribute in the XML file contains the correct filename, because that's what the AssetManager will look for when it creates the atlas later.
+
+[source, as3]
+----
+assets.enqueue(appDir.resolvePath("textures/atlas.xml"));
+assets.enqueue(appDir.resolvePath("textures/atlas.png"));
+----
+
+**Bitmap Fonts** work just the same.
+In this case, you need to make sure that the `file` attribute in the XML (the `.fnt`-file) is set up correctly.
+
+[source, as3]
+----
+assets.enqueue(appDir.resolvePath("fonts/desyrel.fnt"));
+assets.enqueue(appDir.resolvePath("fonts/desyrel.png"));
+----
+
+==== Assets that are embedded
+
+For embedded assets, I recommend you put all the embed statements into one dedicated class.
+Declare them as `public static const` and follow these naming conventions:
+
+* Classes for embedded images should have the exact same name as the file, without extension.
+  This is required so that references from XMLs (atlas, bitmap font) won't break.
+* Atlas and font XML files can have an arbitrary name, since they are never referenced by file name.
+
+Here's a sample of such a class:
+
+[source, as3]
+----
+public class EmbeddedAssets
+{
+    /* PNG texture */
+    [Embed(source = "/textures/bird.png")]
+    public static const bird:Class;
+
+    /* ATF texture */
+    [Embed(source   = "textures/1x/atlas.atf",
+           mimeType = "application/octet-stream")]
+    public static const atlas:Class;
+
+    /* XML file */
+    [Embed(source   = "textures/1x/atlas.xml",
+           mimeType = "application/octet-stream")]
+    public static const atlas_xml:Class;
+
+    /* MP3 sound */
+    [Embed(source = "/audio/explosion.mp3")]
+    public static const explosion:Class;
+}
+----
+
+When you enqueue that class, the asset manager will later instantiate all the assets that are embedded within.
+
+[source, as3]
+----
+var assets:AssetManager = new AssetManager();
+assets.enqueue(EmbeddedAssets); // <1>
+----
+<1> Enqueues `bird` texture, `explosion` sound, and a texture atlas.
+
+==== Per-Asset Configuration
+
+When you create a texture manually (via the `Texture.from...()` factory methods), you've got a chance to fine-tune how it is created.
+For example, you can decide on a texture format or scale factor.
+
+The problem with those settings: once the texture is created, you cannot change them any more.
+So you need to make sure the correct settings are applied right when the texture is created.
+The asset manager supports this kind of configuration, too:
+
+[source, as3]
+----
+var assets:AssetManager = new AssetManager();
+assets.textureFormat = Context3DTextureFormat.BGRA_PACKED;
+assets.scaleFactor = 2;
+assets.enqueue(EmbeddedAssets);
+----
+
+The asset manager will adhere to these settings for all the textures it creates.
+However, it seems that this would only allow one set of properties for _all_ the loaded textures, right?
+Actually, no: you just need to enqueue them in several steps, assigning the right settings prior to each call to `enqueue`.
+
+[source, as3]
+----
+assets.scaleFactor = 1;
+assets.enqueue(appDir.resolvePath("textures/1x"));
+
+assets.scaleFactor = 2;
+assets.enqueue(appDir.resolvePath("textures/2x"));
+----
+
+This will make the textures from the `1x` and `2x` folders use scale factors of one and two, respectively.
+
+=== Loading the Assets
+
+Now that the assets are enqueued, you can load all of them at once.
+Depending on the number and size of assets your are loading, this can take a while.
+For that reason, it probably makes sense to show some kind of progress bar or loading indicator to your users.
+
+[source, as3]
+----
+assets.loadQueue(function(ratio:Number):void
+{
+    trace("Loading assets, progress:", ratio);
+
+    // when the ratio equals '1', we are finished.
+    if (ratio == 1.0)
+        startGame();
+});
+----
+
+Note that the `startGame` method is something you have to implement yourself; that's where you could hide the loading screen and start the actual game.
+
+With an enabled `verbose` property, you'll see the names with which the assets can be accessed:
+
+----
+[AssetManager] Adding sound 'explosion'
+[AssetManager] Adding texture 'bird'
+[AssetManager] Adding texture 'atlas'
+[AssetManager] Adding texture atlas 'atlas'
+[AssetManager] Removing texture 'atlas'
+----
+
+[NOTE]
+====
+Did you notice?
+In the last line, right after creating the texture atlas, the `atlas` texture is actually removed.
+Why is that?
+
+Once the atlas is created, you are no longer interested in the atlas-texture, only in the subtextures it contains.
+Thus, the actual atlas-texture is removed, freeing up the slot for another texture.
+The same happens for bitmap fonts.
+====
+
+=== Accessing the Assets
+
+Finally: now that the queue finished processing, you can access your assets with the various `get...` methods of the AssetManager.
+Each asset is referenced by a name, which is the file name of the asset (without extension) or the class name of embedded objects.
+
+[source, as3]
+----
+var texture:Texture = assets.getTexture("bird"); // <1>
+var textures:Vector.<Texture> = assets.getTextures("animation"); // <2>
+var explosion:SoundChannel = assets.playSound("explosion"); // <3>
+----
+<1> This will first search named textures, then atlases.
+<2> Same as above, but returns all (sub) textures starting with the given String.
+<3> Plays a sound and returns the _SoundChannel_ that controls it.
+
+If you enqueued a bitmap font along the way, it will already be registered and ready to use.
+
+[TIP]
+====
+In my games, I typically store a reference to the asset manager at my root class, accessible through a `static` property.
+That makes it super easy to access my assets from anywhere in the game, simply by calling `Game.assets.get...()` (assuming the root class is called `Game`).
+====
+
+// TODO: Restoring the Assets
+

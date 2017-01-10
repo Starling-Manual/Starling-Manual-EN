@@ -1,0 +1,102 @@
+== Choosing an IDE
+
+As you have just read, Starling apps and games are built using the _Adobe AIR SDK_.
+Technically, you could just use a text editor and the command line to compile and deploy your code, but that's not recommended.
+Instead, you'll definitely want to use an integrated development environment (_IDE_).
+That will make debugging, refactoring and deployment much easier.
+Thankfully, there are several to choose from.
+Let's look at all the candidates!
+
+=== Adobe Flash Builder
+
+Previously called _Flex Builder_, that's the IDE created by Adobe.
+You can either purchase it as a standalone version (in a standard and premium edition) or get it as part of a _Creative Cloud_ subscription.
+
+Built upon _Eclipse_, it is a very powerful piece of software, supporting all the features you'd expect, like mobile debugging and refactoring.
+The premium edition even includes a very useful performance profiler.
+
+Personally, I used _Flash Builder_ for a very long time, and the Starling download even comes with suitable project files.
+However, there is one caveat: _Flash Builder_ has apparently been abandoned by Adobe. The last update (version 4.7) was released in late 2012, and it wasn't particularly stable.
+There are no indications that this situation will change anytime soon.
+
+Thus, I can only recommend it if you are a _Creative Cloud_ user anyway (because then, you'll get it for free), or if you've got an old license lying around somewhere.
+Don't get me wrong: it has a great set of features, and you will get stuff done with it.
+But you will have to live with occasional crashes, and updating the AIR SDK is a chore.
+
+* _Platforms:_ Windows, macOS
+* _Price:_ USD 249 (Standard Edition), USD 699 (Premium Edition)
+
+image::flash-builder.png["Adobe Flash Builder."]
+
+=== IntelliJ IDEA
+
+The next candidate might be called "the IDE to rule them all", because _IDEA_ supports a plethora of languages and platforms.
+AIR support is handled via the plug-in "Flash/Flex Support".
+
+I've been using IDEA for quite a while, and I really like it (especially for its powerful refactoring features).
+Feature-wise, it feels just like it was built for AS3; all the important parts are in place.
+
+Different to _Flash Builder_, the IDE receives regular updates.
+Unfortunately, that's not the case for the Flash plug-in in particular, though.
+There are some (minor) deficits that have been waiting for a fix for quite a while.
+
+That's all just nitpicking, though.
+It's an excellent IDE, and it's my recommendation if you're on macOS.
+The only caveat might be that _JetBrains_ recently switched to a subscription based pricing model, which might not be attractive for everybody.
+
+There's also a free community edition of IDEA, but unfortunately it doesn't include the _Flash/Flex Support_ plug-in.
+
+* _Platforms:_ Windows, macOS
+* _Price:_ USD 499 (first year), USD 399 (second year), USD 299 (third year onwards)
+
+TIP: The subscription model contains a so-called "perpetual fallback license", which means that after 12 months, you'll be able to keep a version of IDEA even if you cancel the subscription.
+Personally, I think this mitigates the downsides of the subscription model.
+
+image::intellij-idea.png["IntelliJ IDEA"]
+
+=== FlashDevelop
+
+As much as I love working on macOS, here's an area where I occasionally envy Windows users: they have access to an excellent free (open source) IDE for Starling development: _FlashDevelop_.
+It has been around since 2005 and is still seeing updates on a regular basis. If you're into _Haxe_, it has you covered, as well.
+
+Since I'm primarily using macOS, I don't have very much first-hand experience with _FlashDevelop_; but from countless posts in the Starling forum, I've heard only good about it.
+Some people are even using it on the mac via a virtual machine (like _Parallels_).
+
+* _Platforms:_ Windows only
+* _Price:_ free and open source
+
+image::flashdevelop.png["FlashDevelop"]
+
+=== PowerFlasher FDT
+
+Just like _Flash Builder_, _FDT_ is built on the _Eclipse_ platform.
+Thus, it's a great choice when moving away from _Flash Builder_, since it all looks and feels very similar.
+You can even import all your _Flash Builder_ projects.
+
+FDT does improve on _Flash Builder_ in several areas; for example, you can easily switch a project from _Flash_ to _AIR_ -- something that is impossible in _Flash Builder_.
+It also supports several additional languages, like _HTML5/JavaScript_, _Haxe_ and _PHP_.
+
+All in all, it's a very solid IDE.
+If you like Eclipse, you can't go wrong with _FDT_!
+
+TIP: There is even a free edition available, which is a great way to get started. Different to what the product page suggests, you can also use it for mobile AIR development.
+
+* _Platforms:_ Windows, macOS
+* _Price:_ between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
+
+image::powerflasher-fdt.png["Powerflasher FDT"]
+
+=== Adobe Animate
+
+If you're a designer or a developer who has been using Flash for a very long time, you might wonder where _Adobe Flash Professional_ is coming up in this list.
+Well, here it is!
+If you're not recognizing it, that's because Adobe recently renamed it to _Adobe Animate_.
+That actually makes a lot of sense, since the new name reflects a major change in its focus.
+_Animate_ is now a general-purpose animation tool, supporting output not only to Flash, but also _HTML5_, _WebGL_, and _SVG_ formats.
+
+While you can use _Animate_ for Starling, I wouldn't recommend it.
+It's a fantastic tool for designers, but it simply wasn't built for writing code.
+You'll be much better off using it just for the graphics, and writing the code in one of the other mentioned IDEs.
+
+* _Platforms:_ Windows, macOS
+* _Price:_ free for _Creative Cloud_ subscribers

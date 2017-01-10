@@ -1,0 +1,121 @@
+== Fragment Filters
+
+Up until now, everything we rendered were meshes with (or without) textures mapped onto them.
+You can move meshes around, scale them, rotate them, and maybe tint them in a different color.
+All in all, however, the possibilities are rather limited -- the look of the game is solely defined by its textures.
+
+At some point, you will run into the limits of this approach; perhaps you need a variant of an image in multiple colors, blurred, or with a drop shadow.
+If you add all of those variants into your texture atlas, you will soon run out of memory.
+
+_Fragment filters_ can help with that.
+A filter can be attached to any display object (including containers) and can completely change its appearance.
+
+For example, let's say you want to add a Gaussian blur to an object:
+
+[source, as3]
+----
+var filter:BlurFilter = new BlurFilter(); // <1>
+object.filter = filter; // <2>
+----
+<1> Create and configure an instance of the desired filter class.
+<2> Assign the filter to the `filter` property of a display object.
+
+With a filter assigned, rendering of a display object is modified like this:
+
+* Each frame, the target object is rendered into a texture.
+* That texture is processed by a fragment shader (directly on the GPU).
+* Some filters use multiple passes, i.e. the output of one shader is fed into the next.
+* Finally, the output of the last shader is drawn to the back buffer.
+
+.The render pipeline of fragment filters.
+image::filter-pipeline.png[Filter Pipeline, 700]
+
+This approach is extremely flexible, allowing to produce all kinds of different effects (as we will see shortly).
+Furthermore, it makes great use of the GPU's parallel processing abilities; all the expensive per-pixel logic is executed right on the graphics chip.
+
+That said: filters break batching, and each filter step requires a separate draw call.
+They are not exactly cheap, both regarding memory usage and performance.
+So be careful and use them wisely.
+
+=== Showcase
+
+Out of the box, Starling comes with a few very useful filters.
+
+==== BlurFilter
+
+Applies a Gaussian blur to an object. The strength of the blur can be set for x- and y-axis separately.
+
+* Per blur direction, the filter requires at least one render pass (draw call).
+* Per strength unit, the filter requires one render pass (a strength of `1` requires one pass, a strength of `2` two passes, etc).
+* Instead of raising the blur strength, it's often better to lower the filter resolution. That has a similar effect, but is much cheaper.
+
+.The _BlurFilter_ in action.
+image::filter-blur.png[BlurFilter, 600]
+
+==== ColorMatrixFilter
+
+Dynamically alters the color of an object. Change an object's brightness, saturation, hue, or invert it altogether.
+
+This filter multiplies the color and alpha values of each pixel with a 4 × 5 matrix.
+That's a very flexible concept, but it's also quite cumbersome to get to the right matrix setup.
+For this reason, the class contains several helper methods that will set up the matrix for the effects you want to achieve (e.g. changing hue or saturation).
+
+* You can combine multiple color transformations in just one filter instance.
+  For example, to change both brightness and saturation, call both of the corresponding methods on the filter.
+* This filter always requires exactly one pass.
+
+.The _ColorMatrixFilter_ in action.
+image::filter-colormatrix.png[ColorMatrixFilter, 600]
+
+==== DropShadow- and GlowFilter
+
+These two filters draw the original object in the front and add a blurred and tinted variant behind it.
+
+* That also makes them rather expensive, because they add an additional render pass to what's required by a pure _BlurFilter_.
+
+._DropShadow-_ and _GlowFilter_ in action.
+image::filter-dropshadow+glow.png[DropShadow and Glow filter, 300]
+
+==== DisplacementMapFilter
+
+Displaces the pixels of the target object depending on the colors in a _map texture_.
+
+* Not exactly easy to use, but very powerful!
+* Reflection on water, a magnifying glass, the shock wave of an explosion -- this filter can do it.
+ifdef::target-handbook[]
+* We will look at the details of this filter in a later chapter.
+endif::[]
+
+.The _DisplacementMapFilter_ using a few different maps.
+image::filter-displacementmap.png[Other filters, 450]
+
+==== FilterChain
+
+To combine several filters on one display object, you can chain them together via the _FilterChain_ class.
+The filters will be processed in the given order; the number of draw calls per filter are simply adding up.
+
+._ColorMatrix-_ and _DropShadowFilter_ chained together.
+image::filter-chain.png[FilterChain, 150]
+
+=== Performance Tips
+
+I mentioned it above: while the GPU processing part is very efficient, the additional draw calls make fragment filters rather expensive.
+However, Starling does its best to optimize filters.
+
+* When an object does not change its position relative to the stage (or other properties like scale and color) for two successive frames, Starling recognizes this and will automatically cache the filter output.
+  This means that the filter won't need to be processed any more; instead, it behaves just like a single image.
+* On the other hand, when the object is constantly moving, the last filter pass is always rendered directly to the back buffer instead of a texture.
+  That spares one draw call.
+* If you want to keep using the filter output even though the object is moving, call `filter.cache()`.
+  Again, this will make the object act just like a static image.
+  However, for any changes of the target object to show up, you must call `cache` again (or `uncache`).
+* To save memory, experiment with the `resolution` and `textureFormat` properties.
+  This will reduce image quality, though.
+
+=== More Filters
+
+Would you like to know how to create your own filters?
+Don't worry, we will investigate that topic a <<Custom Filters, little later>>.
+
+In the meantime, you can try out filters created by other Starling developers.
+An excellent example is the https://github.com/devon-o/Starling-Filters[filter collection] by devon-o.

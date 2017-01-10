@@ -1,0 +1,28 @@
+== Introduction
+
+First of all: welcome to the Starling community!
+Since its first release in 2011, developers from all over the world have created amazing games and apps with the help of the little red bird.
+It's great you want to join us!
+
+You have come to the right place: this manual will teach all you need to know.
+We'll cover everything from 'A' like _Asset Management_ to 'Z' like, ehm, _Zen-like coding_.
+
+I will start from scratch, beginning with a small game that will give you a feeling for the framework.
+Then we'll look at all the concepts in detail, including the display list architecture and Starling's animation system.
+Later chapters contain information for advanced Starling users, like how to write custom rendering code.
+Before you know it, you'll be a master of Starling!
+
+However, there is one small precondition: you should have a basic understanding of _ActionScript 3_ (AS3).
+Fear not: if you have used any other object oriented language, you will get the hang of it quickly.
+There are numerous books and tutorials available that will get you started.
+
+If you ask me for one book in particular, I can recommend "Essential ActionScript 3" by _Colin Moock_.
+When I started to work with AS3, it taught me all the important nuts and bolts, and I'm still taking it off the bookshelf from time to time (especially with AS3's weird E4X syntax for XML processing).
+
+.AS3 vs. JS
+****
+Did you know that _ActionScript 3_ was actually designed to become a successor to _JavaScript_?
+As you might know, _JavaScript_ is an implementation of the _ECMAScript_ language specification; and _ActionScript 3_ is based on _ECMAScript 4_.
+However, due to mostly political reasons, _ECMAScript 4_ was abandoned and never made it into browsers; today, _ActionScript 3_ remains the only implementation of the standard.
+Ironically, though, modern versions of _JavaScript_ look more and more like _ActionScript 3_.
+****

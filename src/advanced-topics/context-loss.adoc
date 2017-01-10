@@ -1,0 +1,204 @@
+== Context Loss
+
+All Stage3D rendering happens through a so called "render context" (an instance of the _Context3D_ class).
+It stores all current settings of the GPU, like the list of active textures, pointers to the vertex data, etc.
+The render context is your connection to the GPU -- without it, you can't do any Stage3D rendering.
+
+And here comes the problem: that context can sometimes get lost.
+This means that you lose references to all data that was stored in graphics memory; most notably: textures.
+
+Such a context loss doesn't happen equally frequently on all systems; it's rare on _iOS_ and _macOS_, happens from time to time on _Windows_ and very often on _Android_ (rotating the screen? Bam!).
+So there's no way around it: we need to expect the worst and prepare for a context loss.
+
+=== Default Behavior
+
+When Starling recognizes that the current render context has been lost, it initiates the following procedures:
+
+* Starling will automatically create a new context and initialize it with the same settings as before.
+* All vertex- and index buffers will be restored.
+* All vertex- and fragment programs (shaders) will be recompiled.
+* Textures will be restored by whatever means possible (from memory/disk/etc.)
+
+Restoring buffers and programs is not problematic; Starling has all data that's required and it doesn't take much time.
+Textures, however, are a headache.
+To illustrate that, let's look at the worst case example: a texture created from an embedded bitmap.
+
+[source, as3]
+----
+[Embed(source="hero.png")]
+public static const Hero:Class;
+
+var bitmap:Bitmap = new Hero();
+var texture:Texture = Texture.fromBitmap(bitmap);
+----
+
+The moment you call `Texture.fromBitmap`, the bitmap is uploaded to GPU memory, which means it's now part of the context.
+If we could rely on the context staying alive forever, we'd be done now.
+
+However, we _cannot_ rely on that: the texture data could be lost anytime.
+That's why Starling will keep a copy of the original bitmap.
+When the worst happens, it will use it to recreate the texture.
+All of that happens behind the scenes.
+
+Lo and behold!
+That means that the texture is in memory three times.
+
+* The "Hero" class (conventional memory)
+* The backup bitmap (conventional memory)
+* The texture (graphics memory)
+
+Given the tight memory constraints we're facing on mobile, this is a catastrophe.
+You don't want this to happen!
+
+It becomes a little better if you change your code slightly:
+
+[source, as3]
+----
+// use the 'fromEmbeddedAsset' method instead
+var texture:Texture = Texture.fromEmbeddedAsset(Hero);
+----
+
+That way, Starling can recreate the texture directly from the embedded class (calling `new Hero()`), which means that the texture is in memory only two times.
+For embedded assets, that's your best bet.
+
+Ideally, though, we want to have the texture in memory only once.
+For this to happen, you must not embed the asset; instead, you need to load it from an URL that points to a local or remote file.
+That way, only the URL needs to be stored; the actual data can then be reloaded from the original location.
+
+There are two ways to make this happen:
+
+* Use the _AssetManager_ to load your textures.
+* Restore the texture manually.
+
+My recommendation is to use the _AssetManager_ whenever possible.
+It will handle a context loss without wasting any memory; you don't have to add any special restoration logic whatsoever.
+
+Nevertheless, it's good to know what's happening behind the scenes.
+Who knows -- you might run into a situation where a manual restoration is your only choice.
+
+=== Manual Restoration
+
+You might wonder how `Texture.fromEmbeddedAsset()` works internally.
+Let's look at a possible implementation of that method:
+
+[source, as3]
+----
+public static function fromEmbeddedAsset(assetClass:Class):Texture
+{
+    var texture:Texture = Texture.fromBitmap(new assetClass());
+    texture.root.onRestore = function():void
+    {
+        texture.root.uploadFromBitmap(new assetClass());
+    };
+    return texture;
+}
+----
+
+You can see that the magic is happening in the `root.onRestore` callback.
+Wait a minute: what's `root`?
+
+You might not know it, but when you've got a _Texture_ instance, that's actually often not a concrete texture at all.
+In reality, it might be just a pointer to a part of another texture (a _SubTexture_).
+Even the `fromBitmap` call could return such a texture!
+(Explaining the reasoning behind that would be beyond the scope of this chapter, though.)
+
+In any case, `texture.root` will always return the _ConcreteTexture_ object, and that's where the `onRestore` callback is found.
+This callback will be executed directly after a context loss, and it gives you the chance of recreating your texture.
+
+In our case, that callback simply instantiates the bitmap once again and uploads it to the root texture.
+Voilà, the texture is restored!
+
+The devil lies in the details, though.
+You have to construct your `onRestore`-callback very carefully to be sure not to store another bitmap copy without knowing it.
+Here's one innocent looking example that's actually totally useless:
+
+[source, as3]
+----
+public static function fromEmbeddedAsset(assetClass:Class):Texture
+{
+    // DO NOT use this code! BAD example.
+
+    var bitmap:Bitmap = new assetClass();
+    var texture:Texture = Texture.fromBitmap(bitmap);
+    texture.root.onRestore = function():void
+    {
+        texture.root.uploadFromBitmap(bitmap);
+    };
+    return texture;
+}
+----
+
+Can you spot the error?
+
+The problem is that the method creates a _Bitmap_ object and uses it in the callback.
+That callback is actually a so-called _closure_; that's an inline function that will be stored together with some of the variables that accompany it.
+In other words, you've got a function object that stays in memory, ready to be called when the context is lost.
+And the bitmap instance is stored inside it, even though you never explicitly said so.
+(Well, in fact you did, by using `bitmap` inside the callback.)
+
+In the original code, the bitmap is not referenced, but _created_ inside the callback.
+Thus, there is no `bitmap` instance to be stored with the closure.
+Only the `assetClass` object is referenced in the callback -- and that is in memory, anyway.
+
+That technique works in all kinds of scenarios:
+
+* If your texture originates from an URL, you pass only that URL to the callback and reload it from there.
+* For ATF textures, the process is just the same, except that you need to upload the data with `root.uploadATFData` instead.
+* For a bitmap containing a rendering of a conventional display object, just reference that display object and draw it into a new bitmap in the callback.
+  (That's just what Starling's _TextField_ class does.)
+
+NOTE: Let me emphasize: the _AssetManager_ does all this for you, so that's the way to go. I just wanted to show you how that is achieved.
+
+=== Render Textures
+
+Another area where a context loss is especially nasty: render textures.
+Just like other textures, they will lose all their contents -- but there's no easy way to restore them.
+After all, their contents is the result of any number of dynamic draw operations.
+
+If the _RenderTexture_ is just used for eye candy (say, footprints in the snow), you might be able to just live with it getting cleared.
+If its contents is crucial, on the other hand, you need a solution for this problem.
+
+There's no way around it: you will need to manually redraw the texture's complete contents.
+Again, the `onRestore` callback could come to the rescue:
+
+[source, as3]
+----
+renderTexture.root.onRestore = function():void
+{
+    var contents:Sprite = getContents();
+    renderTexture.clear(); // required on texture restoration
+    renderTexture.draw(contents);
+});
+----
+
+I hear you: it's probably more than just one object, but a bunch of draw calls executed over a longer period.
+For example, a drawing app with a _RenderTexture_-canvas, containing dozens of brush strokes.
+
+In such a case, you need to store sufficient information about all draw commands to be able to reproduce them.
+
+If we stick with the drawing app scenario, you might want to add support for an _undo/redo_ system, anyway.
+Such a system is typically implemented by storing a list of objects that encapsulate individual commands.
+You can re-use that system in case of a context loss to restore all draw operations.
+
+Now, before you start implementing this system, there is one more gotcha you need to be aware of.
+When the `root.onRestore` callback is executed, it's very likely that not all of your textures are already available.
+After all, they need to be restored, too, and that might take a while!
+
+If you loaded your textures with the _AssetManager_, however, it has got you covered.
+In that case, you can listen to its `TEXTURES_RESTORED` event instead.
+Also, make sure to use `drawBundled` for optimal performance.
+
+[source, as3]
+----
+assetManager.addEventListener(Event.TEXTURES_RESTORED, function():void
+{
+    renderTexture.drawBundled(function():void
+    {
+        for each (var command:DrawCommand in listOfCommands)
+            command.redraw(); // executes `renderTexture.draw()`
+    });
+});
+----
+
+NOTE: This time, there is no need to call clear, because that's the default behavior of `onRestore`, anyway -- and we did not modify that.
+Remember, we are in a different callback here (`Event.TEXTURES_RESTORED`), and `onRestore` has not been modified from its default implementation.

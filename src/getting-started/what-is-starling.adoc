@@ -1,0 +1,68 @@
+== What is Starling?
+ifndef::imagesdir[:imagesdir: ../../img]
+
+The _Starling Framework_ allows you to create hardware accelerated apps in _ActionScript 3_.
+The main target is the creation of 2D games, but Starling may be used for any graphical application.
+Thanks to _Adobe AIR_, Starling-based applications can be deployed to all major mobile and desktop platforms.
+
+.This red little fella represents the logo of the Starling Framework.
+image::starling-bird.png["The Starling logo.", 400]
+
+While Starling mimics the classic display list architecture of _Adobe AIR/Flash_, it provides a much better performance: all objects are rendered directly by the GPU (using the _Stage3D_ API).
+The complete architecture was designed for working well with the GPU; common game development tasks were built right into its core.
+Starling hides _Stage3D_ internals from developers, but makes it easy to access them for those who need full performance and flexibility.
+
+=== Why another display API?
+
+As outlined above, Starling's API is very similar to the native Flash API, namely: the `flash.display` package.
+So you might ask: why go to all that effort to recreate Flash inside ... err, Flash?
+
+The reason is that the original `flash.display` API, with its flexible display list, vector capabilities, text rendering, filters, and whatnot, was designed in an era of desktop computers.
+Those computers had powerful CPUs, but (by modern standards) primitive, fixed-logic graphics hardware.
+Today's mobile hardware, on the other hand, has an almost reversed setup: a weak (i.e. battery-conserving) CPU with a very advanced graphics chip.
+
+The problem: it's extremely difficult (if not impossible) to change an API that was designed for pure CPU rendering to suddenly use the GPU efficiently.
+footnote:[Here's an interesting article from one of Adobe's engineers about the reasons, via 'archive.org': http://tinyurl.com/hkbdgfn]
+Thus, such attempts failed spectacularly, and the Flash plug-in is nowadays completely gone from browsers on phones and tablets.
+
+To its credit, Adobe was very aware of this issue.
+That's why, back in 2011, they introduced a low level graphics API called _Stage3D_.
+That API is decidedly low-level; it's basically a wrapper of _OpenGL_ and _DirectX_, allowing developers to access the raw power of the GPU.
+
+The problem: such a low-level API didn't help users of the classic display list much, at least not right away.
+That's because the _Stage3D_ API is as low-level as it gets, so it's nothing a typical developer can (or should!) directly work with when creating an app or game.
+footnote:[Fancy writing some some pixel shaders in an assembly language? I guessed so.]
+Clearly, Adobe needed a more high-level API, built on top of _Stage3D_, but as easy to use as `flash.display`.
+
+Well ... this is were Starling enters the stage (pun intended)!
+It was designed from ground up for _Stage3D_, while mimicking the classic Flash API as much as possible.
+This makes it is possible to fully leverage today's powerful graphics hardware, while using concepts countless developers are already familiar with.
+
+Adobe could have made such an API themselves, of course.
+However, monolithic APIs built by big companies have the tendency to become big and inflexible.
+A small open source project, on the other hand, powered by a community of equal-minded developers, can act much more swiftly.
+That's the insight that lead _Thibault Imbert_, product manager of the _Flash_ and _AIR_ platforms in 2011, to initiate the Starling project.
+
+To this day, it is funded and supported by Adobe.
+
+=== Starling's philosophy
+
+One of the core aims of Starling was to make it as lightweight and easy to use as possible.
+In my opinion, an open source library should not only be easy to use -- it should also encourage diving into the code.
+I want developers to be able to understand what's going on behind the scenes; only then will they be able to extend and modify it until it perfectly fits their needs.
+
+That's why Starling's source is well documented and surprisingly concise.
+With a size of just about 15k lines of code, it's probably smaller than most games that are written with it!
+
+[TIP]
+====
+I really want to emphasize that: if you're one day stuck or confused why your code isn't working as expected, don't hesitate to step into the source code of Starling.
+Oftentimes, you'll quickly see what's going wrong, and you'll get a much better understanding of its internals.
+====
+
+Another important goal of Starling is, of course, its close affinity to the display list architecture.
+That's not only because I really like the whole idea behind the display list, but also to make it easy for developers to transition to Starling.
+
+Nevertheless, I was never trying to create a perfect duplicate.
+Targeting the GPU requires specific concepts, and those should shine through!
+Concepts like _Textures_ and _Meshes_ aim to blend in seamlessly with the original API, just as if it had always been designed for the GPU.

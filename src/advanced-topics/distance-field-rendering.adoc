@@ -1,0 +1,164 @@
+== Distance Field Rendering
+
+As mentioned multiple times, bitmap fonts are the fastest way to render text in Starling.
+However, if you need to display text in multiple sizes, you will soon discover that bitmap fonts do not scale well.
+Scaling up makes them blurry, scaling down introduces aliasing problems.
+Thus, for best results, one has to embed the font in all the sizes used within the application.
+
+_Distance Field Rendering_ solves this issue: it allows bitmap fonts and other single-color shapes to be drawn without jagged edges, even at high magnifications.
+The technique was first introduced in a http://tinyurl.com/AlphaTestedMagnification[SIGGRAPH paper] by Valve Software.
+Starling contains a _MeshStyle_ that adds this feature to Starling.
+
+To understand how it works, I will start by showing you how to use it on a single image.
+This could e.g. be an icon you want to use throughout your application.
+
+=== Rendering a single Image
+
+We had plenty of birds in this manual already, so let's go for a predator this time!
+My cat qualifies for the job.
+I've got her portrait as a black vector outline, which is perfect for this use-case.
+
+.Say hello to "Seven of Nine", my cat!
+image::cat.png[Cat, 200]
+
+Unfortunately, Starling can't display vector images; we need Seven as a bitmap texture (PNG format).
+That works great as long as we want to display the cat in roughly the original size (`scale == 1`).
+However, when we enlarge the image, it quickly becomes blurry.
+
+.Conventional textures become blurry when scaled up.
+image::cat-scale.png[Scaled Cat, 400]
+
+// Image credits: https://thenounproject.com/search/?q=cat&i=657985
+
+This is exactly what we can avoid by converting this image into a distance field texture.
+Starling actually contains a handy little tool that takes care of this conversion process.
+It's called the "Field Agent" and can be found in the `util` directory of the Starling repository.
+
+NOTE: You need both _Ruby_ and _ImageMagick_ installed to use the field agent.
+Look at the accompanying `README` file to find out how to install those dependencies.
+The tool works both on Windows and macOS.
+
+I started with a high-resolution PNG version of the cat and passed that to the field agent.
+
+  ruby field_agent.rb cat.png cat-df.png --scale 0.25 --auto-size
+
+This will create a distance field texture with 25% of the original size.
+The field agent works best if you pass it a high resolution texture and let it scale that down.
+The distance field encodes the details of the shape, so it can be much smaller than the input texture.
+
+.The resulting distance field texture.
+image::cat-distance-field.png[Cat Distance Field Texture]
+
+The original, sharp outline of the cat has been replaced with a blurry gradient.
+That's what a distance field is about: in each pixel, it encodes the distance to the closest edge in the original shape.
+
+NOTE: This texture is actually just pure white on a transparent background; I colored the background black just so you can see the result better.
+
+The amount of blurriness is called _spread_.
+The field agent uses a default of eight pixels, but you can customize that.
+A higher spread allows better scaling and makes it easier to add special effects (more on those later), but its possible range depends on the input image.
+If the input contains very thin lines, there's simply not enough room for a high spread.
+
+To display this texture in Starling, we simply load the texture and assign it to an image.
+Assigning the _DistanceFieldStyle_ will make Starling switch to _distance field_ rendering.
+
+[source, as3]
+----
+var texture:Texture = assets.getTexture("cat-df");
+var image:Image = new Image(texture);
+image.style = new DistanceFieldStyle();
+image.color = 0x0; // we want a black cat
+addChild(image);
+----
+
+With this style applied, the texture stays perfectly crisp even with high scale values.
+You only see small artifacts around very fine-grained areas (like Seven's haircut).
+
+.Scaling up a distance field texture.
+image::cat-scale-df.png[Scaled cat using a distance field texture, 400]
+
+Depending on the "spread" you used when creating the texture, you might need to update the `softness` parameter to get the sharpness / smoothness you'd like to have.
+That's the first parameter of the style's constructor.
+
+TIP: Rule of thumb: `softness = 1.0 / spread`.
+
+==== Render Modes
+
+That's actually just the most basic use of distance field textures.
+The distance field style supports a couple of different render modes; namely an outline, a drop shadow, and a glow.
+Those effects are all rendered in a specific fragment shader, which means that they do not require any additional draw calls.
+In other words, these effects are basically coming for free, performance wise!
+
+[source, as3]
+----
+var style:DistanceFieldStyle = new DistanceFieldStyle();
+style.setupDropShadow(); // or
+style.setupOutline(); // or
+style.setupGlow();
+----
+
+.Different modes of the distance field style.
+image::cat-modes.png[Cat rendered with different modes, 500]
+
+Pretty cool, huh?
+
+NOTE: The only limitation: you cannot combine two modes, e.g. to have both outline and drop shadow.
+You can still resort back to fragment filters for that, though.
+
+=== Distance Field Fonts
+
+The characteristics of distance field rendering makes it perfect for text.
+Good news: Starling's standard bitmap font class works really well with the distance field style.
+It's just a little cumbersome to create the actual font texture, I'm afraid.
+
+Remember, a bitmap font consists of an atlas-texture that contains all the glyphs and an XML file describing the attributes of each glyph.
+You can't simply use _field agent_ to convert the texture in a post-processing step (at least not easily), since each glyph requires some padding around it to make up for the _spread_.
+
+Therefore, it's best to use a bitmap font tool that supports distance field textures natively.
+Here are some possible candidates:
+
+* http://kvazars.com/littera/[Littera] -- a free online bitmap font generator.
+* http://github.com/libgdx/libgdx/wiki/Hiero[Hiero] -- a cross platform tool.
+* http://www.angelcode.com/products/bmfont/[BMFont] -- Windows-only, from AngelCode.
+
+Personally, I achieved the best results with _Hiero_, although its user interface isn't exactly a joy to work with.
+I hope that the offerings will improve in the future.
+
+TIP: As for _Hiero_, https://github.com/libgdx/libgdx/wiki/Distance-field-fonts[here] is a very good introduction describing the process.
+Unfortunately, _Hiero_ can't export the XML format that Starling requires; this little https://gist.github.com/tluyben/4984856[perl script] might help, though.
+
+Whatever tool or process you use: at the end, you will have a texture and a `.fnt`-file, just as usual.
+As a reminder, here's the code to create and register a bitmap font:
+
+[source, as3]
+----
+[Embed(source="font.fnt", mimeType="application/octet-stream")]
+public static const FontXml:Class;
+
+[Embed(source="font.png")]
+public static const FontTexture:Class;
+
+var texture:Texture = Texture.fromEmbeddedAsset(FontTexture);
+var xml:XML = XML(new FontXml());
+var font:BitmapFont = new BitmapFont(texture, xml)
+TextField.registerCompositor(font);
+
+var textField:TextField = new TextField(200, 50, "I love Starling");
+textField.format.setTo(font.name, BitmapFont.NATIVE_SIZE);
+addChild(textField);
+----
+
+Up until this point, there's nothing new.
+To switch to distance field rendering, we attach the appropriate style right to the TextField.
+
+[source, as3]
+----
+var style:DistanceFieldStyle = new DistanceFieldStyle();
+textField.style = style;
+----
+
+The reward for all this hard work: such a font can now be used at almost any scale, and with all the flexible render modes I showed above.
+
+.A bitmap font using distance fields looks great at any scale.
+image::distance-field-scale.png[Scaled TextField with a Bitmap Font]
+

@@ -1,0 +1,323 @@
+== Meshes
+
+_Mesh_ is the basic building block of all tangible display objects.
+With "tangible", I mean a "leaf" object in the display list: an object that is not a container but is rendered directly to the back buffer.
+Since it is so important, I want to look at this class in a little more detail.
+
+In a nutshell, a _Mesh_ represents a list of triangles to be rendered via _Stage3D_.
+It was mentioned a few times already, since it's the base class of _Quad_ and _Image_.
+As a reminder, here is the class hierarchy we are talking about:
+
+[plantuml, mesh-classes-from-display-object]
+....
+include::../defaults.plantuml[]
+
+DisplayObject <|-- Mesh
+Mesh <|-- Quad
+Quad <|-- Image
+....
+
+_Mesh_ is not an abstract class; nothing prevents you from instantiating it directly.
+Here's how:
+
+[source, as3]
+----
+var vertexData:VertexData = new VertexData();
+vertexData.setPoint(0, "position", 0, 0);
+vertexData.setPoint(1, "position", 10, 0);
+vertexData.setPoint(2, "position", 0, 10);
+
+var indexData:IndexData = new IndexData();
+indexData.addTriangle(0, 1, 2);
+
+var mesh:Mesh = new Mesh(vertexData, indexData);
+addChild(mesh);
+----
+
+As you can see, we first needed to instantiate two more classes: _VertexData_ and _IndexData_.
+They represent collections of vertices and indices, respectively.
+
+* _VertexData_ efficiently stores the attributes of each vertex, e.g. its position and color.
+* _IndexData_ stores indices to those vertices. Every three indices will make up a triangle.
+
+That way, the code above created the most basic drawing primitive: a triangle.
+We did this by defining three vertices and referencing them clockwise.
+After all, that's what a GPU can do best: drawing triangles -- lots of them.
+
+.The triangle we just created.
+image::triangle.png[Triangle, 180]
+
+=== Extending Mesh
+
+Working directly with _VertexData_ and _IndexData_ would be quite bothersome over time.
+It makes sense to encapsulate the code in a class that takes care of setting everything up.
+
+To illustrate how to create custom meshes, we will now write a simple class called _NGon_.
+Its task: to render a regular n-sided polygon with a custom color.
+
+.These are the kinds of regular polygons we want to draw.
+image::polygons.png[Polygons]
+
+We want the class to act just like a built-in display object.
+You instantiate it, move it to a certain position and then add it to the display list.
+
+[source, as3]
+----
+var ngon:NGon = new NGon(100, 5, Color.RED); // <1>
+ngon.x = 60;
+ngon.y = 60;
+addChild(ngon);
+----
+<1> The constructor arguments define radius, number of edges, and color.
+
+Let's look at how we can achieve this feat.
+
+=== Vertex Setup
+
+Like all other shapes, our regular polygon can be built from just a few triangles.
+Here's how we could set up the triangles of a pentagon (an n-gon with `n=5`).
+
+.A pentagon and its vertices.
+image::pentagon.png[Pentagon, 200]
+
+The pentagon is made up of six vertices spanning up five triangles.
+We give each vertex a number between 0 and 5, with 5 being in the center.
+
+As mentioned, the vertices are stored in a _VertexData_ instance.
+_VertexData_ defines a set of named attributes for each vertex.
+In this sample, we need two standard attributes:
+
+* `position` stores a two-dimensional point (x, y).
+* `color` stores an RGBA color value.
+
+The _VertexData_ class defines a couple of methods referencing those attributes.
+That allows us to set up the vertices of our polygon.
+
+Create a new class called _NGon_ that extends _Mesh_.
+Then add the following instance method:
+
+[source, as3]
+----
+private function createVertexData(
+    radius:Number, numEdges:int, color:uint):VertexData
+{
+    var vertexData:VertexData = new VertexData();
+
+    vertexData.setPoint(numEdges, "position", 0.0, 0.0); // <1>
+    vertexData.setColor(numEdges, "color", color);
+
+    for (var i:int=0; i<numEdges; ++i) // <2>
+    {
+        var edge:Point = Point.polar(radius, i*2*Math.PI / numEdges);
+        vertexData.setPoint(i, "position", edge.x, edge.y);
+        vertexData.setColor(i, "color", color);
+    }
+
+    return vertexData;
+}
+----
+<1> Set up center vertex (last index).
+<2> Set up edge vertices.
+
+Since our mesh has a uniform color, we assign the the same color to each vertex.
+The positions of the edge vertices (the corners) are distributed along a circle with the given radius.
+
+=== Index Setup
+
+So much for the vertices.
+Now we need to define the triangles that make up the polygon.
+
+_Stage3D_ wants a simple list if indices, with each three successive indices referencing one triangle.
+It's a good practice to reference the indices clockwise; that convention indicates that we are looking at the front side of the triangle.
+Our pentagon's list would look like this:
+
+    5, 0, 1,   5, 1, 2,   5, 2, 3,   5, 3, 4,   5, 4, 0
+
+In Starling, the _IndexData_ class is used to set up such a list.
+The following method will fill an _IndexData_ instance with the appropriate indices.
+
+[source, as3]
+----
+private function createIndexData(numEdges:int):IndexData
+{
+    var indexData:IndexData = new IndexData();
+
+    for (var i:int=0; i<numEdges; ++i)
+        indexData.addTriangle(numEdges, i, (i+1) % numEdges);
+
+    return indexData;
+}
+----
+
+=== NGon constructor
+
+This is actually all we need for our _NGon_ class!
+Now we just need to make use of the above methods in the constructor.
+All the other responsibilities of a display object (hit testing, rendering, bounds calculations, etc.) are handled by the superclass.
+
+[source, as3]
+----
+public class NGon extends Mesh
+{
+    public function NGon(
+        radius:Number, numEdges:int, color:uint=0xffffff)
+    {
+        var vertexData:VertexData = createVertexData(radius, numEdges, color);
+        var indexData:IndexData = createIndexData(numEdges);
+
+        super(vertexData, indexData);
+    }
+
+    // ...
+}
+----
+
+That's rather straight-forward, isn't it?
+This approach works for any shape you can think of.
+
+[TIP]
+====
+When working with custom meshes, also look at the _Polygon_ class (in the `starling.geom` package).
+It helps with converting an arbitrary, closed shape (defined by a number of vertices) into triangles.
+We look at it in more detail in the <<Masks>> section.
+====
+
+=== Adding a Texture
+
+Wouldn't it be nice if we were able to map a texture onto this polygon, as well?
+The base class, _Mesh_, already defines a `texture` property; we're only lacking the required _texture coordinates_.
+
+Through texture coordinates, you define which part of a texture gets mapped to a vertex.
+They are often called _UV-coordinates_, which is a reference to the names that are typically used for their coordinate axes (_u_ and _v_).
+Note that the UV range is defined to be within _0_ and _1_, regardless of the actual texture dimensions.
+
+.The texture coordinates of the polygon are in the range 0-1.
+image::pentagon-texcoords.png[Pentagon Texture Coordinates, 250]
+
+With this information, we can update the `createVertexData` method accordingly.
+
+[source, as3]
+----
+function createVertexData(
+    radius:Number, numEdges:int, color:uint):VertexData
+{
+    var vertexData:VertexData = new VertexData(null, numEdges + 1);
+    vertexData.setPoint(numEdges, "position", 0.0, 0.0);
+    vertexData.setColor(numEdges, "color", color);
+    vertexData.setPoint(numEdges, "texCoords", 0.5, 0.5); // <1>
+
+    for (var i:int=0; i<numEdges; ++i)
+    {
+        var edge:Point = Point.polar(radius, i*2*Math.PI / numEdges);
+        vertexData.setPoint(i, "position", edge.x, edge.y);
+        vertexData.setColor(i, "color", color);
+
+        var u:Number = (edge.x + radius) / (2 * radius); // <2>
+        var v:Number = (edge.y + radius) / (2 * radius);
+        vertexData.setPoint(i, "texCoords", u, v);
+    }
+
+    return vertexData;
+}
+----
+<1> The texture coordinates of the center vertex: `0.5, 0.5`.
+<2> The origin of the n-gon is in the center, but the texture coordinates must be all positive.
+    So we move the vertex coordinates to the right (by `radius`) and divide them by `2 * radius` to end up in the range `0-1`.
+
+When a texture is assigned, the rendering code will automatically pick up those values.
+
+[source, as3]
+----
+var ngon:NGon = new NGon(100, 5);
+ngon.texture = assets.getTexture("brick-wall");
+addChild(ngon);
+----
+
+.Our textured pentagon.
+image::pentagon-textured.png[Textured Pentagon, 230]
+
+=== Anti-Aliasing
+
+If you look closely at the edges of our n-gon, you will see that the edges are quite jagged.
+That's because the GPU treats a pixel either within the n-gon, or outside -- there are no in-betweens.
+To fix that, you can enabled anti-aliasing: there's a property with that name on the _Starling_ class.
+
+[source, as3]
+----
+starling.antiAliasing = 4;
+----
+
+The value correlates to the number of subsamples _Stage3D_ uses on rendering.
+Using more subsamples requires more calculations to be performed, making anti-aliasing a potentially very expensive option.
+Furthermore, _Stage3D_ doesn't support anti-aliasing on all platforms.
+
+NOTE: On mobile, anti-aliasing currently only works within _RenderTextures_.
+
+Thus, it's not an ideal solution.
+The only consolation I can offer: the typical pixel-density of screens is constantly on the rise.
+On modern, high end mobile phones, the pixels are now so small that aliasing is rarely an issue any longer.
+
+.Anti-Aliasing can smooth pixelated edges.
+image::anti-aliasing.png[Anti-Aliasing, 380]
+
+// TODO: describe RenderTexture-workaround in "Pro-Tips" chapter and link to it here.
+
+=== Mesh Styles
+
+You now know how to create textured meshes with arbitrary shapes.
+For this, you are using the standard rendering mechanics built into Starling.
+
+However, what if you want to customize the rendering process itself?
+The properties and methods of the _Mesh_ class provide a solid foundation -- but sooner or later, you will want more than that.
+
+Coming to the rescue: Starling's _mesh styles_.
+
+Styles are a brand new addition to Starling (introduced in version 2.0) and are the recommended way to create custom, high performance rendering code.
+In fact, all rendering in Starling is now done via mesh styles.
+
+* A style can be assigned to any mesh (instances of the _Mesh_ class or its subclasses).
+* Per default, the style of each mesh is an instance of the base _MeshStyle_ class.
+* The latter provides the standard rendering capabilities of Starling: drawing colored and textured triangles.
+
+To teach your meshes new tricks, you can extend _MeshStyle_.
+This allows you to create custom shader programs for all kinds of interesting effects.
+For example, you could implement fast color transformations or multi-texturing.
+
+[TIP]
+====
+One of the most impressive samples of a style is the http://wiki.starling-framework.org/extensions/dynamic_lighting[Dynamic Lighting extension].
+With the help of a normal map (a texture encoding surface normals), it can provide realistic real-time lighting effects.
+Be sure to check out this extension in the Starling Wiki to see it in action!
+====
+
+To use a style, instantiate it and assign it to the `style` property of the mesh:
+
+[source, as3]
+----
+var image:Image = new Image(texture);
+var lightStyle:LightStyle = new LightStyle(normalTexture);
+image.style = lightStyle;
+----
+
+.The Dynamic Lighting extension in action.
+image::dynamic-lighting.png[Dynamic Lighting]
+
+Styles are extremely versatile; their possible applications are almost without limit.
+And since meshes with the same style can be batched together, you do not sacrifice performance in any way.
+In this respect, they are much more efficient than _fragment filters_ (which serve a similar purpose).
+
+The main downsides of styles are simply that they can only be assigned to a mesh (not, say, a sprite), and that they can only act within the actual mesh area (making things like a blur impossible).
+Furthermore, it's not possible to combine several styles on one mesh.
+
+Still: styles are a powerful tool that any Starling developer should be familiar with.
+Stay tuned: in a <<Custom Styles, later section>>, I'll show you how to create your own mesh style from scratch, shaders and all!
+
+[NOTE]
+====
+If you're still a little confused about the differences between a _Mesh_ and a _MeshStyle_, think of it like this:
+the _Mesh_ is nothing more than a list of vertices, and how those vertices spawn up triangles.
+
+A style may add additional data to each vertex and use it on rendering.
+The standard _MeshStyle_ provides color and texture coordinates; a _MultiTextureStyle_ might add an additional set of texture coordinates, etc.
+But a style should never modify the original shape of the object; it won't add or remove vertices or change their positions.
+====

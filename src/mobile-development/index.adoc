@@ -1,0 +1,25 @@
+= Mobile Development
+
+_Adobe AIR_ is one of the most powerful solutions available today when it comes to cross-platform development.
+And when somebody says "cross-platform" nowadays, it typically means: _iOS_ and _Android_.
+
+Developing for such mobile platforms can be extremely challenging: there's a plethora of different device types around, featuring screen resolutions that range from _insult to the eye_ to _insanely high_ and aspect ratios that defy any logic.
+To add insult to injury, some of them are equipped with CPUs that clearly were never meant to power anything else than a pocket calculator.
+
+As a developer, you can only shrug your shoulders, roll up your sleeves, and jump right in.
+At least you know that fame and fortune lie on the other side of the journey!footnote:[Don't pin me down to that, though.]
+
+include::multi-resolution-development.adoc[]
+
+include::device-rotation.adoc[]
+
+// == Native Extensions
+
+== Summary
+
+Make no mistake: developing for mobile platforms is not easy.
+The variety of the hardware makes it necessary to plan ahead and structure your code smartly.
+Furthermore, the market is extremely competitive, so your design needs to stand out from the masses.
+
+Starling does what it can to help you with this process!
+With the tools you learned in this chapter, you will be able to master this challenge.

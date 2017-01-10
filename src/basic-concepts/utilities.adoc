@@ -1,0 +1,135 @@
+== Utilities
+
+The `starling.utils` package contains several useful little helpers that shouldn't be overlooked.
+
+=== Colors
+
+In both conventional Flash and Starling, colors are specified in hexadecimal format.
+Here are a few examples:
+
+[source, as3]
+----
+// format:         0xRRGGBB
+var red:Number   = 0xff0000;
+var green:Number = 0x00ff00; // or 0xff00
+var blue:Number  = 0x0000ff; // or 0xff
+var white:Number = 0xffffff;
+var black:Number = 0x000000; // or simply 0
+----
+
+The Color class contains a list of named color values; furthermore, you can use it to easily access the components of a color.
+
+[source, as3]
+----
+var purple:uint = Color.PURPLE; // <1>
+var lime:uint   = Color.LIME;
+var yellow:uint = Color.YELLOW;
+
+var color:uint = Color.rgb(64, 128, 192); // <2>
+
+var red:int   = Color.getRed(color);   // ->  64 <3>
+var green:int = Color.getGreen(color); // -> 128
+var blue:int  = Color.getBlue(color);  // -> 192
+----
+<1> A few common colors are predefined.
+<2> Any other color can be created with this method. Just pass the RGB values to this method (range: 0 - 255).
+<3> You can also extract the integer value of each channel.
+
+=== Angles
+
+Starling expects all angles in radians (different to Flash, which uses degrees in some places and radians in others).
+To convert between degrees and radians, you can use the following simple functions.
+
+[source, as3]
+----
+var degrees:Number = rad2deg(Math.PI); // -> 180
+var radians:Number = deg2rad(180);     // -> PI
+----
+
+=== StringUtil
+
+You can use the `format` method to format Strings in _.Net/C#_ style.
+
+[source, as3]
+----
+StringUtil.format("{0} plus {1} equals {2}", 4, 3, "seven");
+  // -> "4 plus 3 equals seven"
+----
+
+The same class also contains methods that trim whitespace from the start and end of a string -- a frequent operation whenever you need to process user input.
+
+[source, as3]
+----
+StringUtil.trim("  hello world\n"); // -> "hello world"
+----
+
+=== SystemUtil
+
+It's often useful to find out information about the environment an app or game is currently executed in.
+The _SystemUtil_ contains some methods and properties helping with that task.
+
+[source, as3]
+----
+SystemUtil.isAIR; // AIR or Flash?
+SystemUtil.isDesktop; // desktop or mobile?
+SystemUtil.isApplicationActive; // in use or minimized?
+SystemUtil.platform; // WIN, MAC, LNX, IOS, AND
+----
+
+=== MathUtil
+
+While that class is mainly designed to help with some geometric problems, it also contains the following very useful helper methods:
+
+[source, as3]
+----
+var min:Number = MathUtil.min(1, 10); // <1>
+var max:Number = MathUtil.max(1, 10); // <2>
+var inside:Number = MathUtil.clamp(-5, 1, 10); // <3>
+----
+<1> Get the smallest of two numbers. Result: `1`
+<2> Get the biggest of two numbers. Result: `10`
+<3> Move the number (first argument) into a specific range. Result: `1`
+
+If you have worked with _AS3_ in the past, you might wonder why I made the effort of writing those methods when similar ones are already provided in the native `Math` class.
+
+Unfortunately, those equivalent methods have a side effect: each time you call e.g. `Math.min`, it creates a temporary object (at least when you compile your app for _iOS_, that is).
+Those alternatives do not have this side effect, so you should always prefer them.
+
+=== Pooling
+
+Now that we touched the topic of temporary objects, it's the perfect time to introduce you to the _Pool_ class.
+
+Experienced AS3 developers know that any object allocation comes at a price: the object needs to be garbage collected later.
+This happens completely behind the scenes; you won't even notice it most of the time.
+
+However, when the cleanup process takes up too much time, your app will freeze for a short moment.
+If that happens often, it quickly becomes a nuisance to your users.
+
+One tactic to avoid this problem is to recycle your objects and use them repeatedly.
+For example, classes like _Point_ and _Rectangle_ are often just needed for a short moment: you create them, fill them with some data, and then throw them away.
+
+From now on, let Starling's _Pool_ class handle those objects.
+
+[source, as3]
+----
+var point:Point = Pool.getPoint(); // <1>
+doSomethingWithPoint(point);
+Pool.putPoint(point); // <2>
+
+var rect:Rectangle = Pool.getRectangle(); // <1>
+doSomethingWithRectangle(rect);
+Pool.putRectangle(rect); // <2>
+----
+<1> Get an object from the pool. That replaces calling `new` on the class.
+<2> Put it back into the pool when you do not need it any longer.
+
+The class also supports _Vector3D_, _Matrix_, and _Matrix3D_, in a similar style.
+
+IMPORTANT: Always make sure that the _get_ and _put_-calls are balanced.
+If you put too many objects into the pool and never retrieve them, it will fill up over time, using more and more memory.
+
+=== Furthermore ...
+
+The `starling.utilities` package contains more helpers than I can possibly list here.
+For a complete list of methods and classes, refer to the http://doc.starling-framework.org/core/starling/utils/package-detail.html[API Reference].
+It will definitely pay off to take a look!

@@ -1,0 +1,61 @@
+== Device Rotation
+
+A very cool feature of today's smartphones and tablets is that they recognize the orientation of the device in the physical world and may update the user interface accordingly.
+
+To detect orientation changes in Starling, you first need to update your application's AIR configuration file.
+Make sure that it includes the following settings:
+
+[source, xml]
+----
+<aspectRatio>any</aspectRatio> <1>
+<autoOrients>true</autoOrients> <2>
+----
+<1> The initial aspect ratio (`portrait`, `landscape` or `any`).
+<2> Indicates whether the app will begin auto-orienting on launch.
+
+When that's in place, you can listen for a `RESIZE` event on the Starling stage.
+It is dispatched whenever the orientation changes.
+After all, an orientation change always causes the stage size to change, as well (exchanging _width_ and _height_).
+
+Update the dimensions of the Starling viewPort and stage in the corresponding event handler.
+
+[source, as3]
+----
+stage.addEventListener(Event.RESIZE, onResize);
+
+private function onResize(event:ResizeEvent):void // <1>
+{
+    updateViewPort(event.width, event.height);
+    updatePositions(event.width, event.height);
+}
+
+private function updateViewPort(width:int, height:int):void // <2>
+{
+    var current:Starling = Starling.current;
+    var scale:Number = current.contentScaleFactor;
+
+    stage.stageWidth  = width  / scale;
+    stage.stageHeight = height / scale;
+
+    current.viewPort.width  = stage.stageWidth  * scale;
+    current.viewPort.height = stage.stageHeight * scale;
+}
+
+private function updatePositions(width:int, height:int):void // <3>
+{
+    // Update the positions of the objects that make up your game.
+}
+----
+<1> This event handler is called when the device rotates.
+<2> Updates the size of stage and viewPort depending on the current screen size in pixels.
+<3> Updates your user interface so that it fits the new orientation.
+
+Note that we had to update _viewPort_ and _stage size_ manually in the event listener.
+Per default, they will remain unchanged, which means that your application will appear cropped.
+The code above fixes that; it works for every scale factor.
+
+The last part is going to be much harder: updating your user interface so that it fits into the new stage dimensions.
+This does not make sense for all games -- but if it does, you should consider the additional effort.
+Your users will appreciate it!
+
+TIP: The _Scaffold_ project coming with Starling contains a possible implementation of this feature.

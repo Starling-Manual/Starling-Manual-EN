@@ -1,0 +1,141 @@
+== Hello World
+ifndef::imagesdir[:imagesdir: ../../img]
+
+Phew, that was quite a lot of background information.
+It's time we finally get our hands dirty!
+And what better way to do that than a classical "Hello World" program.
+This manual wouldn't be complete without one, right?
+
+=== Checklist
+
+Here's a quick summary of the preparations you should already have made:
+
+* Chosen and downloaded an IDE.
+* Downloaded the latest version of the _AIR SDK_.
+* Downloaded the latest version of the _Flash Player Projector_.
+* Downloaded the latest version of _Starling_.
+* Configured your IDE to use the correct SDK and player.
+
+Configuring the IDE and setting up a project is done slightly different in each IDE.
+To help you with that, I created a specific how-to for each IDE in the http://wiki.starling-framework.org/manual/[Starling Wiki].
+Please follow the appropriate tutorial before you continue.
+
+NOTE: Admittedly, all of those set-up procedures are a pain. But bear with me: you only need to do this very rarely.
+
+=== Startup Code
+
+Create a new project or module in your IDE; I recommend you start with a _Flash Player_ project (target platform: _Web_) with the name "Hello World".
+As part of the initialization process, your IDE will also setup a minimal startup class for you.
+Let's open it up and modify it as shown below.
+(Typically, that class is named like your project, so exchange the class name below with the correct one.)
+
+[source, as3]
+----
+package
+{
+    import flash.display.Sprite;
+    import starling.core.Starling;
+
+    [SWF(width="400", height="300", frameRate="60", backgroundColor="#808080")]
+    public class HelloWorld extends Sprite
+    {
+        private var _starling:Starling;
+
+        public function HelloWorld()
+        {
+            _starling = new Starling(Game, stage);
+            _starling.start();
+        }
+    }
+}
+----
+
+This code creates a Starling instance and starts it right away.
+Note that we pass a reference to the “Game” class into the Starling constructor.
+Starling will instantiate that class once it is ready.
+(It's done that way so you don't have to take care about doing stuff in the right order.)
+
+That class first needs to be written, of course.
+Add a new class called `Game` to your project and add the following code:
+
+[source, as3]
+----
+package
+{
+    import starling.display.Quad;
+    import starling.display.Sprite;
+    import starling.utils.Color;
+
+    public class Game extends Sprite
+    {
+        public function Game()
+        {
+            var quad:Quad = new Quad(200, 200, Color.RED);
+            quad.x = 100;
+            quad.y = 50;
+            addChild(quad);
+        }
+    }
+}
+----
+
+The class just displays a simple red quad to see if we've set up everything correctly.
+
+IMPORTANT: Note that the Game class extends `starling.display.Sprite`, not `flash.display.Sprite`!
+This is crucial, because we're in the Starling world now.
+It's completely separate from the `flash.display` package.
+
+=== First Launch
+
+Now start up the project.
+For some of you, the output might be a little anticlimactic, because you are seeing an error message like this:
+
+.You might be greeted with this error instead of the expected quad.
+image::startup-error.png["Startup error message"]
+
+In that case, it was probably the browser that opened up instead of the standalone Flash Player.
+Check the run/debug configuration and make sure the _Flash Player Projector_ (debug version) is used, not the browser.
+That should fix the problem.
+
+==== Fixing the browser error
+
+One day, though, you'll want to embed your SWF file into an HTML page.
+In that case, you can fix the error by changing the `wmode` Flash parameter to `direct` in the HTML file that's embedding the SWF file.
+Typically, this means you have to make the following change:
+
+[source, js]
+----
+// find the following line ...
+var params = {};
+
+// ... and add that one directly below:
+params.wmode = "direct";
+----
+
+==== Fixing the AIR error
+
+You will also see this error if you created an AIR application instead of an SWF file.
+In that case, you will need to edit the AIR application descriptor, which is probably called `HelloWorld-app.xml` or similar.
+Find and the `renderMode` XML node (which might be commented out) and change its value to `direct`.
+
+[source, xml]
+----
+Find this:
+<!-- <renderMode></renderMode> -->
+
+Replace with this:
+<renderMode>direct</renderMode>
+----
+
+NOTE: What we've been doing here is allowing the runtime to access the GPU.
+Without those changes, _Stage3D_ is simply not accessible.
+
+=== Fixed Launch
+
+Congratulations! You have successfully compiled and run your first Starling based project.
+
+.Fantastic: a red Starling in a red box.
+image::hello-world.png["Hello World"]
+
+Seriously: the most daunting part now lies behind you.
+Finally, we are ready to dig into a real project!

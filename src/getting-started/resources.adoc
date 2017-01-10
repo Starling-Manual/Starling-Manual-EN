@@ -1,0 +1,113 @@
+== Resources
+
+We almost have all the building blocks in place now. Let's see how to set everything up so that we can finally get started with our first project, right?
+
+=== AIR SDK
+
+If you have picked and installed your IDE, the next step is to download the latest version of the _AIR SDK_.
+Adobe releases a new stable version once every three months, so be sure to keep up to date!
+Each new release typically contains several important bug-fixes, which is especially important to maintain compatibility with the latest mobile operating systems.
+You will also constantly see the team experimenting with new features, and I'm trying hard to keep up with that pace in Starling.
+
+The latest release can always be found here:
+https://www.adobe.com/devnet/air/air-sdk-download.html[Download Adobe AIR SDK]
+
+NOTE: Starling 2 requires at least AIR 19.
+
+=== Flash Player Projector
+
+If your project also aims to run in the _Flash Player_, I recommend you get the standalone version of it, called _Projector_ (available as _Debug_ and _Release_ versions).
+The advantage of the projector is a much easier debugging experience.
+Yes, you could also debug via the browser (after installing the debug-version of the plug-in) -- but personally, I find that extremely cumbersome.
+The projector starts up much faster, and you don't need to configure any HTML files to get it going.
+
+This page contains a list of all Flash Player versions suitable for developers. Look for the "projector content debugger":
+https://www.adobe.com/support/flashplayer/debug_downloads.html[Adobe Flash Player Debug Downloads]
+
+NOTE: The debugger is significantly slower than the standard version. Keep that in mind when you're working on performance optimization.
+
+Again, your IDE might need to know how to find the correct player.
+For example, in _IDEA_, this setting is part of the debug configurations screen; other IDEs might simply use the system default.
+In any case, it's important to always use a player version that's equal to or higher than the AIR SDK version you compiled the SWF with.
+
+=== Starling
+
+Now all that's left to download is Starling itself.
+You can choose between two ways of doing that.
+
+a. Download the latest release as a zip-file from http://gamua.com/starling/download/[gamua.com/starling/download].
+b. Clone Starling's _Git_ repository.
+
+The advantage of the former is that it comes with a precompiled SWC file (found in the folder `starling/bin`) that is easily linked to your project.
+However, you'll always only get the stable releases this way, which means you're missing out on the latest hot updates and fixes!
+For this reason, I'd rather advocate using _Git_.
+
+TIP: Let's say you report a bug and it is fixed a few days later (yes, that happens!): with the standard download, you'll have to wait for the fix until I'm creating a new stable release, which could be quite a while.
+When you're using the _Git_ repository, you'll have the fix right away.
+
+Going into depths about _Git_ would exceed the scope of this manual, but you'll find lots of great tutorials about it on the web.
+Once installed, _Git_ can _clone_ the complete Starling repository to your disk with the following command:
+
+  git clone https://github.com/Gamua/Starling-Framework.git
+
+This will copy Starling to the folder `Starling-Framework`.
+Look for the actual source code inside the sub-folder `starling/src`.
+All of the mentioned IDEs support adding this folder as a _source path_ to your project, which will make Starling part of your project.
+That's not any more complicated than linking to the SWC file; and as a neat side effect, you will even be able to step into Starling's source on debugging.
+
+But what's best about this approach is how easy it is to update Starling to the latest version.
+Simply navigate into the repository's directory and `pull`:
+
+  cd Starling-Framework
+  git pull
+
+That's much simpler than opening up the browser and manually downloading a new version, isn't it?
+
+[NOTE]
+====
+Some additional information for advanced _Git_-users:
+
+* All day-to-day development in Starling happens on the `master` branch.
+* Stable releases are _tagged_ (like `v2.0`, `v2.0.1`, `v2.1`).
+* Each tag is marked as a _Release_ on _GitHub_, at which time I'll also attach a precompiled SWC file.
+====
+
+=== Getting Help
+
+The best of us get stuck sometimes.
+You might hit a road block because of a bug in Starling, or maybe because of a problem that seems impossible to solve.
+Either way, the Starling community won't leave you alone in your misery!
+Here are some resources that you can go to when you need help.
+
+Starling Forum::
+That's the main hub of the Starling community.
+With dozens of new posts each day, it's very likely that your problem has already been asked before, so be sure to make use of the _search_ feature.
+If that doesn't help, feel free to register an account and ask away.
+One of the most friendly and patient communities you'll find on the web! +
+-> http://forum.starling-framework.org
+
+Starling Manual::
+ifdef::target-manual[The online manual you are reading right now.]
+ifndef::target-manual[The online manual provides an extensive introduction to Starling.]
+I try my best to keep it updated for each new release. +
+-> http://manual.starling-framework.org
+
+Starling Wiki::
+The wiki contains links and articles about different Starling related topics, and most importantly: a list of Starling extensions.
+We will discuss some of those later. +
+-> http://wiki.starling-framework.org
+
+API Reference::
+Don't forget to consult the Starling API Reference for detailed information about all classes and methods. +
+-> http://doc.starling-framework.org
+
+Gamua Blog::
+Keep up to date with the latest news about Starling via the Gamua blog.
+I must admit I'm a little lazy when it comes to writing blog posts, but there will always be at least one for each Starling release. +
+-> http://gamua.com/blog
+
+Twitter::
+I'm using several social networks, but the best way to reach me is via `@Gamua`.
+Follow this account to get updates about new developments or links to other Starling-powered games. +
+-> https://twitter.com/Gamua
+

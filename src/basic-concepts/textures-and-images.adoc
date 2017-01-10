@@ -1,0 +1,323 @@
+== Textures & Images
+
+We came across the _Image_ and _Texture_ classes several times already, and indeed: they are some of the most useful classes in Starling.
+But how are they used, and what's the difference between the two?
+
+=== Textures
+
+A texture is just the data that describes an image -- like the file that is saved on your digital camera.
+You can't show anybody that file alone: it's all zeros and ones, after all.
+You need an image viewer to look at it, or send it to a printer.
+
+Textures are stored directly in GPU memory, which means that they can be accessed very efficiently during rendering.
+They are typically either created from an embedded class or loaded from a file. You can pick between one of the following file formats:
+
+PNG:: The most versatile of them all. Its lossless compression works especially well for images with large areas of solid color. Recommended as default texture format.
+
+JPG:: Produces smaller files than PNG for photographic (and photo-like) images, thanks to it lossy encoding method. However, the lack of an alpha channel limits its usefulness severely. Recommended only for photos and big background images.
+
+ATF:: A format created especially for Stage3D. ATF textures require little texture memory and load very fast; however, their lossy compression is not perfectly suited for all kinds of images. We will look at ATF textures in more detail in a later chapter (see <<ATF Textures>>).
+
+The `starling.textures.Texture` class contains a number of factory methods used to instantiate textures.
+Here are few of them (for clarity, I omitted the arguments).
+
+[source, as3]
+----
+public class Texture
+{
+    static function fromColor():Texture;
+    static function fromBitmap():Texture;
+    static function fromBitmapData():Texture;
+    static function fromEmbeddedAsset():Texture;
+    static function fromCamera():Texture;
+    static function fromNetStream():Texture;
+    static function fromTexture():Texture;
+}
+----
+
+Probably the most common task is to create a texture from a bitmap.
+That couldn't be easier:
+
+[source, as3]
+----
+var bitmap:Bitmap = getBitmap();
+var texture:Texture = Texture.fromBitmap(bitmap);
+----
+
+It's also very common to create a texture from an embedded bitmap.
+That can be done in just the same way:
+
+[source, as3]
+----
+[Embed(source="mushroom.png")] // <1>
+public static const Mushroom:Class;
+
+var bitmap:Bitmap = new Mushroom(); // <2>
+var texture:Texture = Texture.fromBitmap(bitmap); // <3>
+----
+<1> Embed the bitmap.
+<2> Instantiate the bitmap.
+<3> Create a texture from the bitmap.
+
+However, there is a shortcut that simplifies this further:
+
+[source, as3]
+----
+[Embed(source="mushroom.png")] // <1>
+public static const Mushroom:Class;
+
+var texture:Texture = Texture.fromEmbeddedAsset(Mushroom); // <2>
+----
+<1> Embed the bitmap.
+<2> Create a texture right from the class storing the embedded asset.
+
+[IMPORTANT]
+.Pro Tip
+====
+This is not only less code, but it will also require less memory!
+
+The `fromEmbeddedAsset` method does some behind-the-scenes magic to guard for a context loss, and does it more efficient than the conventional `fromBitmap` method can do.
+We will come back to this topic later, but for now, just remember that this is the preferred way of creating a texture from an embedded bitmap.
+====
+
+Another feature of the _Texture_ class is hidden in the inconspicuous `fromTexture` method.
+It allows you to set up a texture that points to an area within another texture.
+
+What makes this so useful is the fact that no pixels are copied in this process.
+Instead, the created _SubTexture_ stores just a reference to its parent texture.
+That's extremely efficient!
+
+[source, as3]
+----
+var texture:Texture = getTexture();
+var subTexture:Texture = Texture.fromTexture(
+        texture, new Rectangle(10, 10, 41, 47));
+----
+
+Shortly, you will get to know the _TextureAtlas_ class; it's basically built exactly around this feature.
+
+=== Images
+
+We've got a couple of textures now, but we still don't know how to display it on the screen.
+The easiest way to do that is by using the _Image_ class or one of its cousins.
+
+Let's zoom in on that part of the family tree.
+
+[plantuml, mesh-classes]
+....
+include::../defaults.plantuml[]
+
+Mesh <|-- Quad
+Quad <|-- Image
+Image <|-- MovieClip
+....
+
+* A _Mesh_ is a flat collection of triangles (remember, the GPU can only draw triangles).
+* A _Quad_ is a collection of at least two triangles spawning up a rectangle.
+* An _Image_ is just a quad with a convenient constructor and a few additional methods.
+* A _MovieClip_ is an image that switches textures over time.
+
+While all of these classes are equipped to handle textures, you will probably work with the _Image_ class most often.
+That's simply because rectangular textures are the most common, and the _Image_ class is the most convenient way to work with them.
+
+To demonstrate, let me show you how to display a texture with a _Quad_ vs. an _Image_.
+
+[source, as3]
+----
+var texture:Texture = Texture.fromBitmap(...);
+
+var quad:Quad = new Quad(texture.width, texture.height); // <1>
+quad.texture = texture;
+addChild(quad);
+
+var image:Image = new Image(texture); // <2>
+addChild(image);
+----
+<1> Create a quad with the appropriate size and assign the texture, or:
+<2> Create an image with its standard constructor.
+
+Personally, I'd always pick the approach that saves me more keystrokes.
+What's happening behind the scenes is exactly the same in both cases, though.
+
+.A texture is mapped onto a quad.
+image::texture-mapping.png[Texture-Mapping]
+
+=== One Texture, multiple Images
+
+It's important to note that a texture can be mapped to any number of images (meshes).
+In fact, that's exactly what you should do: load a texture only once and then reuse it across the lifetime of your application.
+
+[source, as3]
+----
+// do NOT do this!!
+var image1:Image = new Image(Texture.fromEmbeddedAsset(Mushroom));
+var image2:Image = new Image(Texture.fromEmbeddedAsset(Mushroom));
+var image3:Image = new Image(Texture.fromEmbeddedAsset(Mushroom));
+
+// instead, create the texture once and keep a reference:
+var texture:Texture = Texture.fromEmbeddedAsset(Mushroom));
+var image1:Image = new Image(texture);
+var image2:Image = new Image(texture);
+var image3:Image = new Image(texture);
+----
+
+Almost all your memory usage will come from textures; you will quickly run out of RAM if you waste texture memory.
+
+=== Texture Atlases
+
+In all the previous samples, we loaded each texture separately.
+However, real applications should actually not do that.
+Here's why.
+
+* For efficient GPU rendering, Starling batches the rendered _Meshes_ together. Batch processing is disrupted, however, whenever the texture changes.
+* In some situations, _Stage3D_ requires textures to have a width and height that are powers of two.
+  Starling hides this limitation from you, but you will nevertheless use more memory if you do not follow that rule.
+
+By using a texture atlas, you avoid both the texture switches and the power-of-two limitation.
+All textures are within one big "super-texture", and Starling takes care that the correct part of this texture is displayed.
+
+.A texture atlas.
+image::penguflip-atlas.png[Texture Atlas]
+
+The trick is to have _Stage3D_ use this big texture instead of the small ones, and to map only a part of it to each quad that is rendered.
+This will lead to a very efficient memory usage, wasting as little space as possible.
+(Some other frameworks call this feature _Sprite Sheets_.)
+
+ifdef::backend-html5[]
+TIP: The team from "Texture Packer" actually created a nice introduction video about sprite sheets.
+Watch it here: http://www.codeandweb.com/what-is-a-sprite-sheet[What is a Sprite Sheet?]
+endif::[]
+
+==== Creating the Atlas
+
+The positions of each _SubTexture_ are defined in an XML file like this one:
+
+[source, xml]
+----
+<TextureAtlas imagePath="atlas.png">
+ <SubTexture name="moon" x="0" y="0" width="30" height="30"/>;
+ <SubTexture name="jupiter" x="30" y="0" width="65" height="78"/>;
+ ...
+</TextureAtlas>;
+----
+
+As you can see, the XML references one big texture and defines multiple named _SubTextures_, each pointing to an area within that texture.
+At runtime, you can reference these _SubTextures_ by their name and they will act just as if they were independent textures.
+
+But how do you combine all your textures into such an atlas?
+Thankfully, you don't have to do that manually; there are lots of tools around that will help you with that task.
+Here are two candidates, but _Google_ will bring up many more.
+
+* https://www.codeandweb.com/texturepacker/starling?source=gamua[TexturePacker] is my personal favorite. You won't find any tool that allows for so much control about your sprite sheets, and its Starling support is excellent (ATF textures, anyone?).
+* http://renderhjs.net/shoebox/[Shoebox] is a free tool built with _AIR_. While it doesn't have as many options for atlas creation as _TexturePacker_, it contains lots of related functionality, like bitmap font creation or sprite extraction.
+
+==== Using the Atlas
+
+Okay: you've got a texture atlas now.
+But how do you use it?
+Let's start with embedding the texture and XML data.
+
+[source, as3]
+----
+[Embed(source="atlas.xml", mimeType="application/octet-stream")] // <1>
+public static const AtlasXml:Class;
+
+[Embed(source="atlas.png")] // <2>
+public static const AtlasTexture:Class;
+----
+<1> Embed the atlas XML. Don't forget to specify the _mimeType_.
+<2> Embed the atlas texture.
+
+NOTE: Alternatively, you can also load these files from an URL or from the disk (if we are talking about _AIR_).
+We will look at that in detail when we discuss Starling's _AssetManager_.
+
+With those two objects available, we can create a new _TextureAtlas_ instance and access all _SubTextures_ through the method `getTexture()`.
+Create the atlas object once when the game is initialized and reference it throughout its lifetime.
+
+[source, as3]
+----
+var texture:Texture = Texture.fromEmbeddedAsset(AtlasTexture); // <1>
+var xml:XML = XML(new AtlasXml());
+var atlas:TextureAtlas = new TextureAtlas(texture, xml);
+
+var moonTexture:Texture = atlas.getTexture("moon"); // <2>
+var moonImage:Image = new Image(moonTexture);
+----
+<1> Create the atlas.
+<2> Display a _SubTexture_.
+
+It's as simple as that!
+
+=== Render Textures
+
+The _RenderTexture_ class allows creating textures dynamically.
+Think of it as a canvas on which you can paint any display object.
+
+After creating a render texture, just call the `drawObject` method to render an object directly onto the texture.
+The object will be drawn onto the texture at its current position, adhering its current rotation, scale and alpha properties.
+
+[source, as3]
+----
+var renderTexture:RenderTexture = new RenderTexture(512, 512); // <1>
+
+var brush:Sprite = getBrush(); // <2>
+brush.x = 40;
+brush.y = 120;
+brush.rotation = 1.41;
+
+renderTexture.draw(brush); // <3>
+----
+<1> Create a new _RenderTexture_ with the given size (in points). It will be initialized with fully transparent pixels.
+<2> In this sample, we're referencing a display object depicting a brush. We move it to a certain location.
+<3> The brush object will be drawn to the texture with its current position and orientation settings.
+
+Drawing is done very efficiently, as it is happening directly in graphics memory.
+After you have drawn objects onto the texture, the performance will be just like that of a normal texture -- no matter how many objects you have drawn.
+
+[source, as3]
+----
+var image:Image = new Image(renderTexture);
+addChild(image); // <1>
+----
+<1> The texture can be used like any other texture.
+
+If you draw lots of objects at once, it is recommended to bundle the drawing calls in a block via the `drawBundled` method, as shown below.
+This allows Starling to skip a few rather costly operations, speeding up the process immensely.
+
+[source, as3]
+----
+renderTexture.drawBundled(function():void // <1>
+{
+    for (var i:int=0; i<numDrawings; ++i)
+    {
+        image.rotation = (2 * Math.PI / numDrawings) * i;
+        renderTexture.draw(image); // <2>
+    }
+});
+----
+<1> Activate bundled drawing by encapsulating all draw-calls in a function.
+<2> Inside the function, call `draw` just like before.
+
+To erase parts of a render texture, you can use any display object like a "rubber" by setting its blend mode to BlendMode.ERASE.
+
+[source, as3]
+----
+brush.blendMode = BlendMode.ERASE;
+renderTexture.draw(brush);
+----
+
+To wipe it completely clean, use the `clear` method.
+
+[CAUTION]
+.Context Loss
+====
+Unfortunately, render textures have one big disadvantage: they lose all their contents when the render context is lost.
+<<Context Loss>> is discussed in detail in a later chapter; in a nutshell, it means that _Stage3D_ may lose the contents of all its buffers in certain situations.
+(Yes, that is as nasty as it sounds.)
+
+Thus, if it is really important that the texture's contents is persistent (i.e. it's not just eye candy), you will need to make some arrangements.
+We will look into possible strategies in the mentioned chapter -- I just wanted to mention this fact here so it doesn't hit you by surprise.
+====
+
+// TODO: Mipmaps
+// TODO: Image color

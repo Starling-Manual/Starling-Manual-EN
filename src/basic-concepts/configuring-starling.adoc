@@ -1,0 +1,270 @@
+== Configuring Starling
+
+The first step of every Starling-powered application: creating an instance of the _Starling_ class (package `starling.core`).
+Here is the complete declaration of Starling's constructor:
+
+[source, as3]
+----
+public function Starling(
+    rootClass:Class,
+    stage:Stage,
+    viewPort:Rectangle = null,
+    stage3D:Stage3D = null,
+    renderMode:String = auto,
+    profile:Object = auto);
+----
+
+rootClass:: The class that is instantiated as soon as _Stage3D_ has finished initializing. Must be a subclass of `starling.display.DisplayObject`.
+
+stage:: The traditional Flash stage that will host Starling's content. That's how the Starling and Flash display list are connected to each other.
+
+viewPort:: The area within the Flash stage that Starling will render into. Since this is often the full stage size, you can omit this parameter (i.e. pass `null`) to use the full area.
+
+stage3D:: The _Stage3D_ instance used for rendering. Each Flash stage may contain several _Stage3D_ instances and you can pick any one of those. However, the default parameter (`null`) will suffice most of the time: this will make Starling use the first available _Stage3D_ object.
+
+renderMode:: The whole idea behind _Stage3D_ is to provide hardware-accelerated rendering. However, there is also a software fallback mode; it may be forced by passing `Context3DRenderMode.SOFTWARE`. The default (`auto`) is recommended, though -- it means that software rendering is used only when there's no alternative.
+
+profile:: _Stage3D_ provides a set of capabilities that are grouped into different _profiles_ (defined as constants within `Context3DProfile`). The better the hardware the application is running on, the better the available profile. The default (`auto`) simply picks the best available profile.
+
+Most of these arguments have useful default values, so you will probably not need to specify all of them.
+The code below shows the most straight-forward way to start Starling.
+We are looking at the _Main_ class of a _Flash Player_ or _AIR_ project.
+
+[source, as3]
+----
+package
+{
+    import flash.display.Sprite;
+    import starling.core.Starling;
+
+    [SWF(width="640", height="480",
+         backgroundColor="#808080",
+         frameRate="60")]
+    public class Main extends Sprite
+    {
+        private var _starling:Starling;
+
+        public function Main()
+        {
+            _starling = new Starling(Game, stage);
+            _starling.start();
+        }
+    }
+}
+----
+
+Note that the class extends `flash.display.Sprite`, not the Starling variant.
+That's simply a necessity of all _Main_ classes in _AS3_.
+However, as soon as Starling has finished starting up, the logic is moved over to the _Game_ class, which builds our link to the `starling.display` world.
+
+[NOTE]
+.Configuring the Frame Rate
+====
+Some settings are configured right in the "SWF" _MetaData_ tag in front of the class.
+The frame rate is one of them.
+Starling itself does not have an equivalent setting: it always simply uses the _frameRate_ from the native stage.
+To change it at runtime, access the `nativeStage` property:
+
+[source, as3]
+----
+Starling.current.nativeStage.frameRate = 60;
+----
+====
+
+Starling's setup process is asynchronous.
+That means that you won't yet be able to access the `Game` instance at the end of the `Main` method.
+However, you can listen to the `ROOT_CREATED` event to get notified when the class has been instantiated.
+
+[source, as3]
+----
+public function Main()
+{
+    _starling = new Starling(Game, stage);
+    _starling.addEventListener(Event.ROOT_CREATED, onRootCreated);
+    _starling.start();
+}
+
+private function onRootCreated(event:Event, root:Game):void
+{
+    root.start(); // 'start' needs to be defined in the 'Game' class
+}
+----
+
+=== The ViewPort
+
+_Stage3D_ provides Starling with a rectangular area to draw into.
+That area can be anywhere within the native stage, which means: anywhere within the area of the _Flash Player_ or the application window (in case of an _AIR_ project).
+
+In Starling, that area is called the _viewPort_.
+Most of the time, you will want to use all of the available area, but sometimes it makes sense to limit rendering to a certain region.
+
+Think of a game designed in an aspect ratio of 4:3, running on an 16:9 screen.
+By centering the 4:3 _viewPort_ on the screen, you will end up with a "letterboxed" game, with black bars at the top and bottom.
+
+// TODO: add image
+
+You can't talk about the _viewPort_ without looking at Starling's _stage_, as well.
+By default, the stage will be exactly the same size as the _viewPort_.
+That makes a lot of sense, of course: a device with a display size of 1024 × 768 pixels should have an equally sized stage.
+
+You can customize the stage size, though.
+That's possible via the `stage.stageWidth` and `stage.stageHeight` properties:
+
+[source, as3]
+----
+stage.stageWidth = 1024;
+stage.stageHeight = 768;
+----
+
+But wait, what does that even mean?
+Is the size of the drawing area now defined by the _viewPort_ or the _stage size_?
+
+Don't worry, that area is still only set up by the _viewPort_, as described above.
+Modifying the `stageWidth` and `stageHeight` doesn't change the size of the drawing area at all;
+the stage is always stretched across the complete _viewPort_.
+What you are changing, though, is the size of the stage's _coordinate system_.
+
+That means that with a stage width of `1024`, an object with an x-coordinate of `1000` will be close to the right edge of the stage; no matter if the viewPort is `512`, `1024`, or `2048` pixels wide.
+
+That becomes especially useful when developing for _HiDPI_ screens.
+For example, Apple's _iPad_ exists in a normal and a "retina" version, the latter doubling the number of pixel rows and columns (yielding four times as many pixels).
+On such a screen, the interface elements should not become smaller; instead, they should be rendered more crisply.
+
+By differentiating between the _viewPort_ and the _stage size_, this is easily reproduced in Starling.
+On both device types, the stage size will be 1024×768; the viewPort, on the other hand, will reflect the size of the screen in pixels.
+The advantage: you can use the same coordinates for your display objects, regardless of the device on which the application is running.
+
+[NOTE]
+.Points vs. Pixels
+====
+If you think this through, you'll see that on such a retina device, an object with an x-coordinate of `1` will actually be two pixels away from the origin.
+In other words, the unit of measurement has changed.
+We are no longer talking about pixels, but _points_!
+On a low-resolution screen, one point equals one pixel; on a HiDPI screen, it's two pixels (or more, depending on the device).
+====
+
+To find out the actual width (in pixels) of a point, you can simply divide `viewPort.width` by `stage.stageWidth`.
+Or you use Starling's `contentScaleFactor` property, which does just that.
+
+[source, as3]
+----
+starling.viewPort.width = 2048;
+starling.stage.stageWidth = 1024;
+trace(starling.contentScaleFactor); // -> 2.0
+----
+
+I will show you how to make full use of this concept in the <<Mobile Development>> chapter.
+
+=== Context3D Profiles
+
+The platforms Starling is running on feature a wide variety of graphics processors.
+Of course, those GPUs have different capabilities.
+The question is: how to differentiate between those capabilities at runtime?
+
+That's what _Context3D profiles_ (also called _render profiles_) are for.
+
+[NOTE]
+.What is a Context3D?
+====
+When using _Stage3D_, you are interacting with a rendering pipeline that features a number of properties and settings.
+The _context_ is the object that encapsulate that pipeline.
+Creating a texture, uploading shaders, rendering triangles -- that's all done through the context.
+====
+
+Actually, Starling makes every effort to hide any profile limitations from you.
+To ensure the widest possible reach, it was designed to work even with the lowest available profile.
+At the same time, when running in a higher profile, it will automatically make best use of it.
+
+Nevertheless, it might prove useful to know about their basic features.
+Here's an overview of each profile, starting with the lowest.
+
+`BASELINE_CONSTRAINED`:: If a device supports Stage3D at all, it must support this profile. It comes with several mean limitations, e.g. it only supports textures with side-lengths that are powers of two, and the length of shaders is very limited. That profile is mainly found on old desktop computers.
+
+`BASELINE`:: The minimum profile to be found on mobile devices. Starling runs well with this profile; the removal of the power-of-two limitation allows for more efficient memory usage, and the length of shader programs is easily sufficient for its needs.
+
+`BASLINE_EXTENDED`:: Raises the maximum texture size from `2048x2048` to `4096x4096` pixels, which is crucial for high-resolution devices.
+
+`STANDARD_CONSTRAINED`, `STANDARD`, `STANDARD_EXTENDED`:: Starling currently doesn't need any of the features coming with these profiles. They provide additional shader commands and other low-level enhancements.
+
+My recommendation: simply let Starling pick the best available profile (`auto`) and let it deal with the implications.
+
+[NOTE]
+.Maximum Texture Size
+====
+There's only one thing you need to take care of yourself: making sure that your textures are not too big.
+The maximum texture size is accessible via the property `Texture.maxSize`, but only _after_ Starling has finished initializing.
+====
+
+=== Native Overlay
+
+The main idea behind Starling is to speed up rendering with its Stage3D driven API.
+However, there's no denying it: the classic display list has many features that Starling simply can't offer.
+Thus, it makes sense to provide an easy way to mix-and-match features of Starling and classic Flash.
+
+The `nativeOverlay` property is the easiest way to do so.
+That's a conventional `flash.display.Sprite` that lies directly on top of Starling, taking _viewPort_ and _contentScaleFactor_ into account.
+If you need to use conventional Flash objects, add them to this overlay.
+
+Beware, though, that conventional Flash content on top of _Stage3D_ can lead to performance penalties on some (mobile) platforms. For that reason, always remove all objects from the overlay when you don't need them any longer.
+
+[NOTE]
+====
+Before you ask: no, you can't add any conventional display objects _below_ Starling display objects.
+The Stage3D surface is always at the bottom; there's no way around that.
+====
+
+=== Skipping Unchanged Frames
+
+It happens surprisingly often in an application or game that a scene stays completely static for several frames.
+The application might be presenting a static screen or wait for user input, for example.
+So why redraw the stage at all in those situations?
+
+That's exactly the point of the `skipUnchangedFrames`-property.
+If enabled, static scenes are recognized as such and the back buffer is simply left as it is.
+On a mobile device, the impact of this feature can't be overestimated.
+There's simply no better way to enhance battery life!
+
+I'm already hearing your objection: if this feature is so useful, why isn't it activated by default?
+There must be a catch, right?
+
+Indeed, there is: it doesn't work well with _Render-_ and _VideoTextures_.
+Changes in those textures simply won't show up.
+It's easy to work around that, though: either disable `skipUnchangedFrames` temporarily while using them, or call `stage.setRequiresRedraw()` whenever their content changes.
+
+Now that you know about this feature, make it a habit to always activate it!
+In the meantime, I hope that I can solve the mentioned problems in a future Starling version.
+
+IMPORTANT: On mobile platforms, there's another limitation you should be aware of: as soon as there's any content on the native (Flash) stage (e.g. via Starling's `nativeOverlay`), Starling can't skip any frames.
+That's the consequence of a Stage3D limitation.
+
+=== The Statistics Display
+
+When developing an application, you want as much information as possible about what's going on.
+That way, you will be able to spot problems early and maybe avoid running into a dead end later.
+The statistics display helps with that.
+
+[source, as3]
+----
+_starling.showStats = true;
+----
+
+.The statistics display (by default at the top left).
+image::stats-display.png[The statistics display]
+
+What's the meaning of those values?
+
+* The _framerate_ should be rather self-explanatory: the number of frames Starling managed to render during the previous second.
+* _Standard memory_ is, in a nutshell, what your _AS3_ objects fill up. Whether it's a _String_, a _Sprite_, a _Bitmap_, or a _Function_: all objects require some memory.
+  The value is given in megabytes.
+* _GPU memory_ is separate from that. Textures are stored in graphics memory, as are vertex buffers and shader programs.
+  Most of the time, textures will overshadow everything else.
+* The number of _draw calls_ indicates how many individual "draw"-commands are sent to the GPU in each frame.
+  Typically, a scene renders faster when there are fewer draw calls.
+  We will look in detail at this value when we talk about <<Performance Optimization>>.
+
+You might notice that the background color of the statistics display alternates between black and dark green.
+That's a subtle clue that's referring to the `skipUnchangedFrames` property:
+whenever the majority of the last couple of frames could be skipped, the box turns green.
+Make sure that it stays green whenever the stage is static; if it doesn't, some logic is preventing frame skipping to kick in.
+
+TIP: You can customize the location of the statistics display on the screen via the method `showStatsAt`.
