@@ -12,13 +12,13 @@ This document will guide you through the installation process.
 
 Apple's _macOS_ and most _Linux_ distributions have both Ruby and Python installed per default, which makes the process rather easy.
 
-1. Install a couple of Ruby gems via:  
-   `gem install rake bundler`
-2. Install _pip_, the package manager for Python:  
+1. Install the _Bundler_ Ruby gem via:
+   `gem install bundler`
+2. Install _pip_, the package manager for Python:
    `sudo easy_install pip`
-3. Use _pip_ to install _Pygments_:  
+3. Use _pip_ to install _Pygments_:
    `pip install pygments`
-4. Install all required Ruby packages via:  
+4. Install all required Ruby gems via:
    `cd path/to/manual; bundle install`
 
 ### Windows
@@ -27,11 +27,13 @@ I recommend to use the package manager [Chocolatey][5] for easy installation of 
 
 1. Install _Chocolatey_.
 2. Open an administrative command line (in Windows 10, right-clicking the Start button reveals such an option).
-3. Install the basic packages via:  
+3. Install the basic packages via:
    `choco install -y ruby python2 pip`
-4. Use _pip_ to install _Pygments_:  
+4. Use _pip_ to install _Pygments_:
    `pip install pygments`
-5. Install all required Ruby packages via:  
+5. Install the _Bundler_ Ruby gem via:
+   `gem install bundler`
+6. Install all required Ruby gems via:
    `cd path/to/manual; bundle install`
 
 ## Compilation
