@@ -3,7 +3,7 @@
 The goal of this manual is to provide an extensive introduction to the [Starling Framework][1].
 Starling is a cross-platform engine for _ActionScript 3_ that can be used for all kinds of applications, with a special focus on 2D games.
 
-This repository provides the basis for the online manual found [http://manual.starling-framework.org](here).
+This repository provides the basis for the online manual found [here](http://manual.starling-framework.org).
 It is written in the [AsciiDoc][2] markup language and can be easily compiled into HTML, PDF and EPUB.
 Have a look at the `BUILD.md` file to find out how to compile the source yourself.
 
