@@ -177,7 +177,7 @@ That's because smart dogs set up a _BarkEvent_ that stores their intent.
 ----
 public class BarkEvent extends Event
 {
-    public static const BARK:String; // <1>
+    public static const BARK:String = "bark"; // <1>
 
     private var _reason:String; // <2>
 
@@ -210,7 +210,7 @@ class Dog extends Sprite
 }
 
 var einstein:Dog = new Dog();
-einstein.addEventListener("bark", onBark);
+einstein.addEventListener(BarkEvent.BARK, onBark);
 
 function onBark(event:BarkEvent):void // <1>
 {

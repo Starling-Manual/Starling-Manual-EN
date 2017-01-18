@@ -10,6 +10,13 @@ This means that you lose references to all data that was stored in graphics memo
 Such a context loss doesn't happen equally frequently on all systems; it's rare on _iOS_ and _macOS_, happens from time to time on _Windows_ and very often on _Android_ (rotating the screen? Bam!).
 So there's no way around it: we need to expect the worst and prepare for a context loss.
 
+[TIP]
+.How to trigger a context loss
+====
+There is an easy way to check if your application can handle a context loss: simply dispose the current context via `Starling.context.dispose()`.
+It will immediately be recreated, which is just what happens after the real thing.
+====
+
 === Default Behavior
 
 When Starling recognizes that the current render context has been lost, it initiates the following procedures:

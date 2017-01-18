@@ -196,6 +196,5 @@ Note, however, that asynchronous upload is not available in this case.
 
 You can find out more about this topic in the following sources:
 
-* http://www.adobe.com/devnet/flashruntimes/articles/introducing-compressed-textures.html[Introducing Compressed Textures]
-* http://www.adobe.com/devnet/flashruntimes/articles/atf-users-guide.html[ATF Tools User's Guide]
-
+* https://www.adobe.com/devnet/archive/flashruntimes/articles/introducing-compressed-textures.html[Introducing Compressed Textures]
+* https://www.adobe.com/devnet/archive/flashruntimes/articles/atf-users-guide.html[ATF Tools User's Guide]
