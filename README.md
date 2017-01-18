@@ -13,7 +13,8 @@ Are you interested in helping out the Starling community by translating this man
 Eternal fame and thankfulness of the Starling community would be yours!
 
 If so, please simply open up an issue in [this repository][4], stating the language you want to help with.
-I will then create a fork of this repository and set it up for you with full access rights.
+I will then create a fork of this repository and set it up for you with full access rights. 
+Detailed instructions about how the translation process works can be found in the [wiki][5].
 
 Thanks a lot in advance!
 
@@ -21,3 +22,4 @@ Thanks a lot in advance!
 [2]: http://manual.starling-framework.org/en
 [3]: http://asciidoctor.org/docs/what-is-asciidoc
 [4]: https://github.com/Starling-Manual/Starling-Manual-EN
+[5]: https://github.com/Starling-Manual/Starling-Manual-EN/wiki
