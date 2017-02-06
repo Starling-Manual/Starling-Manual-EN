@@ -240,7 +240,7 @@ image::pentagon-textured.png[Textured Pentagon, 230]
 
 If you look closely at the edges of our n-gon, you will see that the edges are quite jagged.
 That's because the GPU treats a pixel either within the n-gon, or outside -- there are no in-betweens.
-To fix that, you can enabled anti-aliasing: there's a property with that name on the _Starling_ class.
+To fix that, you can enable anti-aliasing: there's a property with that name on the _Starling_ class.
 
 [source, as3]
 ----
