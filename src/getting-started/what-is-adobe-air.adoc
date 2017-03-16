@@ -6,8 +6,7 @@ At that time, it was basically the only choice when you wanted to create interac
 Browsers had very limited capabilities when it came to video, sound, and animation; and the few features they had were plagued by browser incompatibilities.
 In short: it was a mess.
 
-That's why _Adobe Flash_ was so popular.
-footnote:[_Flash_ was originally created by _Macromedia_, which was acquired by Adobe in 2005.]
+That's why _Adobe Flash_ was so popular.footnote:[_Flash_ was originally created by _Macromedia_, which was acquired by Adobe in 2005.]
 It allowed designers and developers to create multimedia content in an intuitive authoring program (now called _Adobe Animate_), and ensured that it would look the same across all platforms.
 With _ActionScript 3_, it also featured a language that was both easy to learn, and very powerful.
 
@@ -38,7 +37,8 @@ Even though it might be no longer the "cool kid" in town, the _AIR/Flash_-platfo
 
 * Compared to the fragmented world of _HTML5_, where trending libraries change faster than Lady Gaga's costumes, it is very mature and easy to use.
 * It comes with an extensive standard library that provides all the tools you need for day-to-day development.
-* The Flash plug-in, while clearly on the decline for general websites, is still the standard for browser gaming. The majority of games on _Facebook_, for example, is still built with Flash.
+* The Flash plug-in, while clearly on the decline for general websites, is still the standard for browser gaming.
+  The majority of games on _Facebook_, for example, are still built with Flash.
 * Especially combined with _Starling_ and _Feathers_, it provides one of the smoothest paths for true cross-platform development (targeting all major desktop and mobile platforms with a single code-base).
 
 Talking about _Starling_ ... how does it fit into this picture?

@@ -23,8 +23,9 @@ Thus, I can only recommend it if you are a _Creative Cloud_ user anyway (because
 Don't get me wrong: it has a great set of features, and you will get stuff done with it.
 But you will have to live with occasional crashes, and updating the AIR SDK is a chore.
 
-* _Platforms:_ Windows, macOS
-* _Price:_ USD 249 (Standard Edition), USD 699 (Premium Edition)
+[horizontal]
+Platforms:: Windows, macOS
+Price:: USD 249 (Standard Edition), USD 699 (Premium Edition)
 
 image::flash-builder.png["Adobe Flash Builder."]
 
@@ -46,8 +47,9 @@ The only caveat might be that _JetBrains_ recently switched to a subscription ba
 
 There's also a free community edition of IDEA, but unfortunately it doesn't include the _Flash/Flex Support_ plug-in.
 
-* _Platforms:_ Windows, macOS
-* _Price:_ USD 499 (first year), USD 399 (second year), USD 299 (third year onwards)
+[horizontal]
+Platforms:: Windows, macOS
+Price:: USD 499 (first year), USD 399 (second year), USD 299 (third year onwards)
 
 TIP: The subscription model contains a so-called "perpetual fallback license", which means that after 12 months, you'll be able to keep a version of IDEA even if you cancel the subscription.
 Personally, I think this mitigates the downsides of the subscription model.
@@ -60,10 +62,11 @@ As much as I love working on macOS, here's an area where I occasionally envy Win
 It has been around since 2005 and is still seeing updates on a regular basis. If you're into _Haxe_, it has you covered, as well.
 
 Since I'm primarily using macOS, I don't have very much first-hand experience with _FlashDevelop_; but from countless posts in the Starling forum, I've heard only good about it.
-Some people are even using it on the mac via a virtual machine (like _Parallels_).
+Some people are even using it on the Mac via a virtual machine (like _Parallels_).
 
-* _Platforms:_ Windows only
-* _Price:_ free and open source
+[horizontal]
+Platforms:: Windows only
+Price:: free and open source
 
 image::flashdevelop.png["FlashDevelop"]
 
@@ -73,18 +76,38 @@ Just like _Flash Builder_, _FDT_ is built on the _Eclipse_ platform.
 Thus, it's a great choice when moving away from _Flash Builder_, since it all looks and feels very similar.
 You can even import all your _Flash Builder_ projects.
 
-FDT does improve on _Flash Builder_ in several areas; for example, you can easily switch a project from _Flash_ to _AIR_ -- something that is impossible in _Flash Builder_.
+FDT does improve on _Flash Builder_ in several areas; for example, you can easily change the type of an existing project from _Flash_ to _AIR_ -- something that is impossible in _Flash Builder_.
 It also supports several additional languages, like _HTML5/JavaScript_, _Haxe_ and _PHP_.
 
 All in all, it's a very solid IDE.
 If you like Eclipse, you can't go wrong with _FDT_!
 
-TIP: There is even a free edition available, which is a great way to get started. Different to what the product page suggests, you can also use it for mobile AIR development.
+TIP: There is even a free edition available, which is a great way to get started.
+Contrary to what the product page suggests, you can also use it for mobile AIR development.
 
-* _Platforms:_ Windows, macOS
-* _Price:_ between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
+[horizontal]
+Platforms:: Windows, macOS
+Price:: between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
 
 image::powerflasher-fdt.png["Powerflasher FDT"]
+
+=== Visual Studio Code
+
+_Visual Studio Code_ is a lightweight but powerful source code editor that's available for all major desktop operating systems.
+It does not provide any ActionScript support out of the box, but there is an extension in the works that might make it a viable (and free!) alternative to the other IDEs soon.
+
+The https://nextgenactionscript.com/vscode/[NextGen ActionScript] extension is being developed by Josh Tynjala, who has also brought you the fantastic _Feathers_ user interface components.
+It turns Visual Studio Code into a fully-fledged ActionScript development environment, including code intelligence features like auto-completion, automatic class imports, etc.
+At the time of this writing, Josh just added support for debugging SWF files in AIR or Flash Player -- the deal-breaker for any serious development environment.
+
+Being brand-new, it's still a little rough around the edges, but (knowing Josh) I have no doubt that this extension is going to become rock-solid in the future.
+Definitely keep an eye out for this one!
+
+[horizontal]
+Platforms:: Windows, macOS
+Price:: free and open source
+
+image::vscode-nextgenas.png["Visual Studio Code extension: NextGen AS"]
 
 === Adobe Animate
 
@@ -98,5 +121,6 @@ While you can use _Animate_ for Starling, I wouldn't recommend it.
 It's a fantastic tool for designers, but it simply wasn't built for writing code.
 You'll be much better off using it just for the graphics, and writing the code in one of the other mentioned IDEs.
 
-* _Platforms:_ Windows, macOS
-* _Price:_ free for _Creative Cloud_ subscribers
+[horizontal]
+Platforms:: Windows, macOS
+Price:: free for _Creative Cloud_ subscribers

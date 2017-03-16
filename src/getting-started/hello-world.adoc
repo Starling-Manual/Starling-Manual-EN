@@ -116,7 +116,7 @@ params.wmode = "direct";
 
 You will also see this error if you created an AIR application instead of an SWF file.
 In that case, you will need to edit the AIR application descriptor, which is probably called `HelloWorld-app.xml` or similar.
-Find and the `renderMode` XML node (which might be commented out) and change its value to `direct`.
+Find the `renderMode` XML node (which might be commented out) and change its value to `direct`.
 
 [source, xml]
 ----

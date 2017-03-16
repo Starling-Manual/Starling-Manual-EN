@@ -244,23 +244,26 @@ To fix that, you can enable anti-aliasing: there's a property with that name on 
 
 [source, as3]
 ----
-starling.antiAliasing = 4;
+starling.antiAliasing = 2;
 ----
 
 The value correlates to the number of subsamples _Stage3D_ uses on rendering.
 Using more subsamples requires more calculations to be performed, making anti-aliasing a potentially very expensive option.
 Furthermore, _Stage3D_ doesn't support anti-aliasing on all platforms.
 
-NOTE: On mobile, anti-aliasing currently only works within _RenderTextures_.
+NOTE: Full-screen anti-aliasing is available on all desktop platforms, except when using software rendering.
+Support for iOS was added in AIR 24; Android is currently only supported via _RenderTextures_.
 
 Thus, it's not an ideal solution.
-The only consolation I can offer: the typical pixel-density of screens is constantly on the rise.
-On modern, high end mobile phones, the pixels are now so small that aliasing is rarely an issue any longer.
+Luckily, however, the typical pixel-density of mobile devices is constantly on the rise.
+On modern, high end mobile phones, the pixels are now so small that aliasing is much less an issue than it was in the past.
+
+ifdef::target-handbook[]
+We will take a look at alternative ways to fight aliasing issues separately in the section <<Anti-Aliasing Strategies>>.
+endif::[]
 
 .Anti-Aliasing can smooth pixelated edges.
 image::anti-aliasing.png[Anti-Aliasing, 380]
-
-// TODO: describe RenderTexture-workaround in "Pro-Tips" chapter and link to it here.
 
 === Mesh Styles
 

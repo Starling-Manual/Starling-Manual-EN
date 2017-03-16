@@ -4,10 +4,10 @@ With all the things we learned in the previous chapters, you are already well eq
 However, while doing so, you might run into a few things that might be puzzling.
 For example,
 
-* Your textures are quickly consuming all available memory.
-* You are encountering a _context loss_ from time to time. WTF!?footnote:[My editor said it's not polite to swear, but (1) I used an acronym and (2) context loss really s*cks.]
-* You are actually a little disappointed by the performance of your application. You want more speed!
-* Or you might be one of those masochists who like to write their own vertex and fragment shaders, but didn't know where to start.
+* your textures are quickly consuming all available memory.
+* you are encountering a _context loss_ from time to time. WTF!?footnote:[My editor said it's not polite to swear, but (1) I used an acronym and (2) context loss really s*cks.]
+* you are actually a little disappointed by the performance of your application. You want more speed!
+* or you might be one of those masochists who like to write their own vertex and fragment shaders, but didn't know where to start.
 
 Funny enough, that perfectly summarizes what this chapter is about.
 Buckle up Dorothy, we are now jumping into some advanced topics!
@@ -34,7 +34,7 @@ Pat yourself on the back: we just covered a lot of quite advanced topics.
 * You know how to recover from a context loss: by relying on the _AssetManager_ or providing your own restoration-code.
 * You've got a feeling about how to make sure you are not wasting any memory, and how to avoid and find memory leaks.
 * When performance becomes an issue, your first look is at the draw count. You know ways to make sure batching is not disrupted.
-* The low-level rendering code is far less frightening that you thought at first. Heck, you just wrote your own filter and style!
+* The low-level rendering code is far less frightening that you thought at first. Heck, you even wrote your own filter and style!
 * Distance field rendering is a useful technique to keep in mind for scalable fonts or other monochrome shapes.
 
 This knowledge will save you a lot of time and trouble in any of your upcoming projects.

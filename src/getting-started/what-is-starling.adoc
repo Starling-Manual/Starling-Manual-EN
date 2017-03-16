@@ -21,8 +21,7 @@ The reason is that the original `flash.display` API, with its flexible display l
 Those computers had powerful CPUs, but (by modern standards) primitive, fixed-logic graphics hardware.
 Today's mobile hardware, on the other hand, has an almost reversed setup: a weak (i.e. battery-conserving) CPU with a very advanced graphics chip.
 
-The problem: it's extremely difficult (if not impossible) to change an API that was designed for pure CPU rendering to suddenly use the GPU efficiently.
-footnote:[Here's an interesting article from one of Adobe's engineers about the reasons, via 'archive.org': http://tinyurl.com/hkbdgfn]
+The problem: it's extremely difficult (if not impossible) to change an API that was designed for pure CPU rendering to suddenly use the GPU efficiently.footnote:[Here's an interesting article from one of Adobe's engineers about the reasons, via 'archive.org': http://tinyurl.com/hkbdgfn]
 Thus, such attempts failed spectacularly, and the Flash plug-in is nowadays completely gone from browsers on phones and tablets.
 
 To its credit, Adobe was very aware of this issue.
@@ -30,8 +29,7 @@ That's why, back in 2011, they introduced a low level graphics API called _Stage
 That API is decidedly low-level; it's basically a wrapper of _OpenGL_ and _DirectX_, allowing developers to access the raw power of the GPU.
 
 The problem: such a low-level API didn't help users of the classic display list much, at least not right away.
-That's because the _Stage3D_ API is as low-level as it gets, so it's nothing a typical developer can (or should!) directly work with when creating an app or game.
-footnote:[Fancy writing some some pixel shaders in an assembly language? I guessed so.]
+That's because the _Stage3D_ API is as low-level as it gets, so it's nothing a typical developer can (or should!) directly work with when creating an app or game.footnote:[Fancy writing some some pixel shaders in an assembly language? I guessed so.]
 Clearly, Adobe needed a more high-level API, built on top of _Stage3D_, but as easy to use as `flash.display`.
 
 Well ... this is were Starling enters the stage (pun intended)!
@@ -41,9 +39,9 @@ This makes it is possible to fully leverage today's powerful graphics hardware, 
 Adobe could have made such an API themselves, of course.
 However, monolithic APIs built by big companies have the tendency to become big and inflexible.
 A small open source project, on the other hand, powered by a community of equal-minded developers, can act much more swiftly.
-That's the insight that lead _Thibault Imbert_, product manager of the _Flash_ and _AIR_ platforms in 2011, to initiate the Starling project.
+That's the insight that led _Thibault Imbert_, product manager of the _Flash_ and _AIR_ platforms in 2011, to initiate the Starling project.
 
-To this day, it is funded and supported by Adobe.
+To this day, Starling is funded and supported by Adobe.
 
 === Starling's philosophy
 

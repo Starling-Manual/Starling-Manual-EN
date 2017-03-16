@@ -74,7 +74,7 @@ These two filters draw the original object in the front and add a blurred and ti
 * That also makes them rather expensive, because they add an additional render pass to what's required by a pure _BlurFilter_.
 
 ._DropShadow-_ and _GlowFilter_ in action.
-image::filter-dropshadow+glow.png[DropShadow and Glow filter, 300]
+image::filter-dropshadow-with-glow.png[DropShadow and Glow filter, 300]
 
 ==== DisplacementMapFilter
 
