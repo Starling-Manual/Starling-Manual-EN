@@ -16,7 +16,7 @@ You might think: we already have a mechanism for that -- methods!
 That's true, but methods only work in one direction.
 For example, look at a _MessageBox_ that contains a _Button_.
 
-[ditaa, messagebox-calls-button]
+[ditaa, messagebox-calls-button, width=200, scale=4, pdfwidth='4cm', scaledwidth='200px']
 ....
 /------------\
 | MessageBox |
@@ -52,7 +52,7 @@ That's a good thing, because otherwise, you could only use buttons inside messag
 Still: the button is there for a reason -- if triggered, it needs to tell somebody about it!
 In other words: the button needs to be able to send messages to its owner, whoever that is.
 
-[ditaa, button-dispatches-to-messagebox]
+[ditaa, button-dispatches-to-messagebox, width=200, scale=4, pdfwidth='4cm', scaledwidth='200px']
 ....
 /------------\
 | MessageBox |
@@ -69,7 +69,7 @@ In other words: the button needs to be able to send messages to its owner, whoev
 
 I have something to confess: when I showed you the class hierarchy of Starling's display objects, I omitted the actual base class: _EventDispatcher_.
 
-[plantuml, class-hierarchy-with-eventdispatcher]
+[plantuml, class-hierarchy-with-eventdispatcher, width=298, pdfwidth='6.12cm', scaledwidth='298px']
 ....
 include::../defaults.plantuml[]
 
@@ -298,7 +298,7 @@ NOTE: The simplified `dispatchEventWith` call is actually even more memory effic
 
 === Bubbling
 
-In our previous examples, the event dispatcher and the event listener were directly connected via the `addEventListener`-method.
+In our previous examples, the event dispatcher and the event listener were directly connected via the `addEventListener` method.
 But sometimes, that's not what you want.
 
 Let's say you created a complex game with a deep display list.
@@ -316,10 +316,10 @@ The trunk, that's your stage, and the leaves of the tree are your display object
 Now, if a leaf creates a bubbling event, that event will move upwards just like the bubbles in a glass of soda, traveling from branch to branch (from parent to parent) until it finally reaches the trunk.
 
 .An event bubbles all the way up to the stage.
-image::bubbling.png[Bubbling, 200]
+image::bubbling.png[Bubbling, 200, pdfwidth='4cm', scaledwidth='200px']
 
 Any display object along this route can listen to this event.
-It can even pop the bubble and stop it from traveling further. All that is required to do that is to set the `bubbles`-property of an event to true.
+It can even pop the bubble and stop it from traveling further. All that is required to do that is to set the `bubbles` property of an event to true.
 
 [source, as3]
 ----
@@ -417,9 +417,9 @@ The method `getTouch` is provided by the _TouchEvent_ class and helps you find t
 NOTE: The _Touch_ class encapsulates all information of a single touch: where it occurred, where it was in the previous frame, etc.
 
 As first parameter, we passed `this` to the `getTouch` method.
-Thus, we're asking the the event to return any touches that occurred on on `this` _or its children_.
+Thus, we're asking the event to return any touches that occurred on `this` _or its children_.
 
-Touches go through a number of _phases_ within their life time:
+Touches go through a number of _phases_ within their lifetime:
 
 [horizontal]
 `TouchPhase.HOVER`:: Only for mouse input; dispatched when the cursor moves over the object with the mouse button _up_.
@@ -460,8 +460,14 @@ We can base our logic on the length and contents of that vector.
 * In the first _if_-clause, only a single finger is on the screen. Via `getMovement`, we could e.g. implement a drag-gesture.
 * In the _else_-clause, two fingers are on the screen. By accessing both touch objects, we could e.g. implement a pinch-gesture.
 
+ifdef::target-handbook[]
+We will go into the details of how to recognize dragging and pinching in the <<Touch Gestures>> section.
+endif::[]
+
+ifndef::target-handbook[]
 NOTE: The demo application that's part of the Starling download contains the https://github.com/Gamua/Starling-Framework/blob/master/samples/demo/src/utils/TouchSheet.as[TouchSheet] class, which is used in the _Multitouch_ scene.
-It shows a sample implementation of a touch handler that allows dragging, rotation and scaling of a sprite.
+It shows a sample implementation of a touch handler that allows dragging, rotation and scaling a sprite.
+endif::[]
 
 ==== Mouse Out and End Hover
 

@@ -1,6 +1,6 @@
 == Fragment Filters
 
-Up until now, everything we rendered were meshes with (or without) textures mapped onto them.
+Up to this point, all the drawable objects we discussed were meshes with (or without) textures mapped onto them.
 You can move meshes around, scale them, rotate them, and maybe tint them in a different color.
 All in all, however, the possibilities are rather limited -- the look of the game is solely defined by its textures.
 
@@ -28,7 +28,7 @@ With a filter assigned, rendering of a display object is modified like this:
 * Finally, the output of the last shader is drawn to the back buffer.
 
 .The render pipeline of fragment filters.
-image::filter-pipeline.png[Filter Pipeline, 700]
+image::filter-pipeline.png[Filter Pipeline, 700, pdfwidth='11.5cm']
 
 This approach is extremely flexible, allowing to produce all kinds of different effects (as we will see shortly).
 Furthermore, it makes great use of the GPU's parallel processing abilities; all the expensive per-pixel logic is executed right on the graphics chip.
@@ -50,7 +50,7 @@ Applies a Gaussian blur to an object. The strength of the blur can be set for x-
 * Instead of raising the blur strength, it's often better to lower the filter resolution. That has a similar effect, but is much cheaper.
 
 .The _BlurFilter_ in action.
-image::filter-blur.png[BlurFilter, 600]
+image::filter-blur.png[BlurFilter, 600, scaledwidth='600px', pdfwidth='12cm']
 
 ==== ColorMatrixFilter
 
@@ -65,7 +65,7 @@ For this reason, the class contains several helper methods that will set up the 
 * This filter always requires exactly one pass.
 
 .The _ColorMatrixFilter_ in action.
-image::filter-colormatrix.png[ColorMatrixFilter, 600]
+image::filter-colormatrix.png[ColorMatrixFilter, 600, scaledwidth='600px', pdfwidth='12cm']
 
 ==== DropShadow- and GlowFilter
 
@@ -74,7 +74,7 @@ These two filters draw the original object in the front and add a blurred and ti
 * That also makes them rather expensive, because they add an additional render pass to what's required by a pure _BlurFilter_.
 
 ._DropShadow-_ and _GlowFilter_ in action.
-image::filter-dropshadow-with-glow.png[DropShadow and Glow filter, 300]
+image::filter-dropshadow-with-glow.png[DropShadow and Glow filter, 300, scaledwidth='300px', pdfwidth='6cm']
 
 ==== DisplacementMapFilter
 
@@ -83,19 +83,19 @@ Displaces the pixels of the target object depending on the colors in a _map text
 * Not exactly easy to use, but very powerful!
 * Reflection on water, a magnifying glass, the shock wave of an explosion -- this filter can do it.
 ifdef::target-handbook[]
-* We will look at the details of this filter in a later chapter.
+* We will look at the details of this filter in the section <<Water Reflection>>.
 endif::[]
 
 .The _DisplacementMapFilter_ using a few different maps.
-image::filter-displacementmap.png[Other filters, 450]
+image::filter-displacementmap.png[Other filters, 450, scaledwidth='450px', pdfwidth='9cm']
 
 ==== FilterChain
 
 To combine several filters on one display object, you can chain them together via the _FilterChain_ class.
-The filters will be processed in the given order; the number of draw calls per filter are simply adding up.
+The filters will be processed in the given order; the number of draw calls per filter are simply added up.
 
 ._ColorMatrix-_ and _DropShadowFilter_ chained together.
-image::filter-chain.png[FilterChain, 150]
+image::filter-chain.png[FilterChain, 150, scaledwidth='150px', pdfwidth='3cm']
 
 === Performance Tips
 
@@ -115,7 +115,7 @@ However, Starling does its best to optimize filters.
 === More Filters
 
 Would you like to know how to create your own filters?
-Don't worry, we will investigate that topic a <<Custom Filters, little later>>.
+Don't worry, we will investigate that topic a little later (see <<Custom Filters>>).
 
 In the meantime, you can try out filters created by other Starling developers.
-An excellent example is the https://github.com/devon-o/Starling-Filters[filter collection] by devon-o.
+An excellent example is the https://github.com/devon-o/Starling-Filters[filter collection] by Devon O. Wolfgang.

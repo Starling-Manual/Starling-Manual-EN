@@ -55,7 +55,7 @@ The following stage properties set up the camera:
 * *projectionOffset* -- A vector that moves the camera away from its default position, which is right in front of the center of the stage.
 
 .Those are the properties that set up the camera.
-image::camera-diagram.png[Camera Diagram, 450]
+image::camera-diagram.png[Camera Diagram, 450, pdfwidth='11cm']
 
 Starling will always make sure that the stage will fill the entire viewport.
 If you change the field of view, the focal length will be modified to adhere to this constraint, and the other way round.
@@ -64,13 +64,13 @@ In other words: _fieldOfView_ and _focalLength_ are just different representatio
 Here's an example of how different _fieldOfView_ values influence the look of the cube from the Starling demo:
 
 .Different values for _fieldOfView_ (in degrees).
-image::fov.png[Field-of-View, 550]
+image::fov.png[Field-of-View, 550, pdfwidth='9cm']
 
 Per default, the camera will always be aligned so that it points towards the center of the stage. The _projectionOffset_ allows you to change the perspective away from this point; use it if you want to look at your objects from another direction, e.g. from the top or bottom.
 Here's the cube again, this time using different settings for `projectionOffset.y`:
 
 .Different values for _projectionOffset.y_.
-image::proj-offset.png[Projection Offset, 550]
+image::proj-offset.png[Projection Offset, 550, pdfwidth='11cm']
 
 === Limitations
 

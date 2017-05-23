@@ -32,7 +32,7 @@ Other properties modify the way the pixels appear on the screen:
 Those are the basics that every display object must support.
 Let's look at the class hierarchy around this area of Starling's API:
 
-[plantuml, class-hierarchy]
+[plantuml, class-hierarchy, width=535, pdfwidth='11cm']
 ....
 include::../defaults.plantuml[]
 
@@ -73,7 +73,7 @@ When I say "connected to", I mean that there needs to be a _parent-child_ relati
 To make an object appear on the screen, you make it the child of the stage, or any other _DisplayObjectContainer_ that's connected to the stage.
 
 .Display objects are organized in the display list.
-image::display-list.png[Display List, 350]
+image::display-list.png[Display List, 350, pdfwidth='7cm', scaledwidth='350px']
 
 The first (and, typically: only) child of the stage is the _application root_: that's the class you pass to the Starling constructor.
 Just like the stage, it's probably going to be a _DisplayObjectContainer_.
@@ -83,7 +83,7 @@ You will create containers, which in turn will contain other containers, and mes
 In the display list, those meshes make up the _leaves_: they cannot have any child objects.
 
 Since all of this sounds very abstract, let's look at a concrete example: a speech bubble.
-To create speech bubble, you will need an image (for the bubble), and some text (for its contents).
+To create a speech bubble, you will need an image (for the bubble), and some text (for its contents).
 
 Those two objects should act as one: when moved, both image and text should follow along.
 The same applies for changes in size, scaling, rotation, etc.
@@ -106,7 +106,7 @@ So, to group text and image together, you create a sprite and add text and image
 ----
 var sprite:Sprite = new Sprite(); // <1>
 var image:Image = new Image(texture);
-var textField:TextField = new TextField(200, 50, "Ay caramba!");
+var textField:TextField = new TextField(200, 50, "¡Ay, caramba!");
 sprite.addChild(image); // <2>
 sprite.addChild(textField); // <3>
 ----
@@ -118,7 +118,7 @@ The order in which you add the children is important -- they are placed like lay
 Here, `textField` will appear in front of `image`.
 
 .A speech bubble, made up by an image and a TextField.
-image::speech-bubble.png[Speech Bubble, 600]
+image::speech-bubble.png[Speech Bubble, 600, pdfwidth='9cm']
 
 Now that those objects are grouped together, you can work with the sprite just as if it was just one object.
 
@@ -160,7 +160,7 @@ Each sheet represents a coordinate system with a horizontal x-axis and a vertica
 The position you stick the pin through is the root of the coordinate system.
 
 .Coordinate systems act like the sheets on a pinboard.
-image::coordinate-systems.png[Coordinage Systems]
+image::coordinate-systems.png[Coordinage Systems, pdfwidth='5cm']
 
 Now, when you rotate the sheet of paper, everything that is drawn onto it (e.g. image and text) will rotate with it -- as do the x- and y-axes.
 However, the root of the coordinate system (the pin) stays where it is.
@@ -179,7 +179,7 @@ All those elements will be displayed on the screen -- thus, each will be represe
 Take a simple message box as an example.
 
 .A game's message box.
-image::msgbox.png[Message Box]
+image::msgbox.png[Message Box, width=300, pdfwidth='7cm', scaledwidth='280px']
 
 That's actually quite similar to the speech bubble we just created; in addition to the background image and text, it also contains two buttons.
 
@@ -209,19 +209,19 @@ public class MessageBox extends DisplayObjectContainer
         var buttonTexture:Texture = Texture.fromEmbeddedAsset(ButtonBmp);
 
         _background = new Image(bgTexture);
-        _textField  = new TextField(100, 20, text);
-        _yesButton  = new Button(buttonTexture, "yes");
+        _textField  = new TextField(200, 100, text);
         _noButton   = new Button(buttonTexture, "no");
+        _yesButton  = new Button(buttonTexture, "yes");
 
-        _yesButton.x = 10;
-        _yesButton.y = 20;
-        _noButton.x  = 60;
-        _noButton.y  = 20;
+        _noButton.x  = 20;
+        _noButton.y  = 100;
+        _yesButton.x = 120;
+        _yesButton.y = 100;
 
         addChild(_background);
         addChild(_textField);
-        addChild(_yesButton);
         addChild(_noButton);
+        addChild(_yesButton);
     }
 }
 ----
@@ -243,7 +243,7 @@ This is done using Starling's event mechanism, which is shown in a later chapter
 When you don't want an object to be displayed any longer, you simply remove it from its parent, e.g. by calling `removeFromParent()`.
 The object will still be around, of course, and you can add it to another display object, if you want.
 Oftentimes, however, the object has outlived its usefulness.
-In that case, it's a good practice to dispose it.
+In that case, it's a good practice to call its `dispose` method.
 
 [source, as3]
 ----
@@ -251,9 +251,11 @@ msgBox.removeFromParent();
 msgBox.dispose();
 ----
 
-When you dispose display objects, they will free up all the resources that they (or any of their children) have allocated.
+When you dispose display objects, they will free up all the resources that they have allocated.
 That's important, because many _Stage3D_ related data is not reachable by the garbage collector.
 When you don't dispose that data, it will stay in memory, which means that the app will sooner or later run out of resources and crash.
+
+IMPORTANT: When you dispose a container, all of its children will be disposed, too.
 
 To make things easier, `removeFromParent()` optionally accepts a Boolean parameter to dispose the DisplayObject that is being removed.
 That way, the code from above can be simplified to this single line:
@@ -310,7 +312,7 @@ To stick with the analogy used in previous chapters: the pivot point defines the
 The code above moves the pivot point to the center of the object.
 
 .Note how moving the pivot point changes how the object rotates.
-image::pivot-point.png[Pivot Point]
+image::pivot-point.png[Pivot Point, pdfwidth='7cm']
 
 Now that you have learned how to control the pivot point coordinates individually, let's take a look at the method `alignPivot()`.
 It allows us to move the pivot point to the center of the object with just one line of code:
@@ -346,7 +348,7 @@ That image will now return a `width` of 200 pixels (twice its original width).
 However, to center the pivot point horizontally, you'd still set `pivotX` to `50`, not `100`!
 In the _local_ coordinate system, the image is still 100 pixels wide -- it just appears wider in the _parent_ coordinate system.
 
-It might be easier to understand when you look back the code from the beginning of this section, where we centered the image within a parent sprite.
+It might be easier to understand when you look back at the code from the beginning of this section, where we centered the image within a parent sprite.
 What would happen if you changed the `scale` of the sprite?
 Would this mean that you have to update the position of the image to keep it centered?
 Of course not.

@@ -14,7 +14,7 @@ The goal is just the same as the one we were shooting for with the _ColorOffsetF
 Only this time, we're doing it with style! We'll call it ... _ColorOffsetStyle_.
 
 .Applying a color offset with style.
-image::customfilter-offset.png[Offset with a Style]
+image::customfilter-offset.png[Offset with a Style, pdfwidth='7cm']
 
 Before we continue, it's crucial that you understand the difference between a filter and a style.
 
@@ -279,7 +279,7 @@ This time, we're going to extend the _MeshEffect_ class.
 Remember, effects simplify writing of low-level rendering code.
 I'm actually talking about a group of classes with the following inheritance:
 
-[plantuml, effect-classes]
+[plantuml, effect-classes, width=118, pdfwidth='2.43cm', scaledwidth='118px']
 ....
 include::../defaults.plantuml[]
 
@@ -329,11 +329,11 @@ class ColorOffsetEffect extends MeshEffect
 }
 ----
 
-If you compare that with the analog filter effect from the previous tutorial, you'll see that all the `offset`-properties were removed; instead, we're now overriding `vertexFormat`, which ensures that we are using the same format as the corresponding style, ready to have our offset values stored with each vertex.
+If you compare that with the analog filter effect from the previous tutorial, you'll see that all the `offset` properties were removed; instead, we're now overriding `vertexFormat`, which ensures that we are using the same format as the corresponding style, ready to have our offset values stored with each vertex.
 
 ==== beforeDraw & afterDraw
 
-The `beforeDraw` and `afterDraw`-methods now configure the context so that we can read the offset attribute from the shaders as `va3` (_vertex attribute 3_).
+The `beforeDraw` and `afterDraw` methods now configure the context so that we can read the offset attribute from the shaders as `va3` (_vertex attribute 3_).
 Let's have a look at that line from `beforeDraw`:
 
 [source, as3]
@@ -387,7 +387,7 @@ override protected function createProgram():Program
 
 To understand what the vertex-shader is doing, you first have to understand the input it's working with.
 
-* The `va`-registers ("vertex attribute") contain the attributes from the current vertex, taken from the vertex buffer.
+* The `va` registers ("vertex attribute") contain the attributes from the current vertex, taken from the vertex buffer.
   They are ordered just like the attributes in the vertex format we set up a little earlier: `va0` is the vertex position, `va1` the texture coordinates, `va2` the color, `va3` the offset.
 * Two constants are the same for all our vertices: `vc0-3` contain the modelview-projection matrix, `vc4` the current alpha value.
 
@@ -425,7 +425,7 @@ addChild(image2);
 ----
 
 .Two styled images, rendered with just one draw call.
-image::custom-style-sample.png[Custom Style Sample]
+image::custom-style-sample.png[Custom Style Sample, pdfwidth='7cm']
 
 Hooray, this actually works!
 Be sure to look at the draw count at the top left, which is an honest and constant "1".
@@ -433,7 +433,7 @@ Be sure to look at the draw count at the top left, which is an honest and consta
 There's a tiny little bit more to do, though; our shaders above were created assuming that there's always a texture to read data from.
 However, the style might also be assigned to a mesh that doesn't use any texture, so we have to write some specific code for that case (which is so simple I'm not going to elaborate on it right now).
 
-The complete class, including this last-minute fix, can be found here: https://gist.github.com/PrimaryFeather/eaaa4a1b50cf546613d2[ColorOffsetStyle.as].
+The complete class, including this last-minute fix, can be found here: https://git.io/v9OtC[ColorOffsetStyle.as].
 
 === Where to go from here
 
@@ -442,4 +442,4 @@ I hope you're as thrilled as I am that we succeeded on our task.
 What you see above is the key to extending Starling in ways that are limited only by your imagination.
 The _MeshStyle_ class even has a few more tricks up its sleeve, so be sure to read through the complete class documentation.
 
-I'm looking forward to seeing what you guys come up with!
+I'm looking forward to seeing what you come up with!

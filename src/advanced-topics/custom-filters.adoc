@@ -35,15 +35,15 @@ Thus, the texel color appears unchanged (a multiplication with `1` is a no-op).
 When you assign a different color instead, the multiplication will yield a new color, e.g.
 
   R = 1,   G = 0.8, B = 0.6  ×
-  B = 0.5, G = 0.5, B = 0.5
+  R = 0.5, G = 0.5, B = 0.5
   -------------------------
   R = 0.5, G = 0.4, B = 0.3
 
-And here's there problem: this will only ever make an object darker, never brighter.
+And here's the problem: this will only ever make an object darker, never brighter.
 That's because we can only multiply with values between 0 and 1; zero meaning the result will be black, and one meaning it remains unchanged.
 
 .Tinting an image with a gray color.
-image::customfilter-tinting.png[Tinting]
+image::customfilter-tinting.png[Tinting, pdfwidth='7cm']
 
 That's what we want to fix with this filter!
 We're going to include an _offset_ to the formula.
@@ -57,7 +57,7 @@ We're going to include an _offset_ to the formula.
 We already have the multiplier, since that's handled in the base _Mesh_ class; our filter just needs to add the offset.
 
 .Adding an offset to all channels.
-image::customfilter-offset.png[Offset]
+image::customfilter-offset.png[Offset, pdfwidth='7cm']
 
 So let's finally start, shall we?!
 
@@ -198,7 +198,7 @@ To get deeper into the topic, you can always have a look at one of the following
 
   * http://www.adobe.com/devnet/flashplayer/articles/how-stage3d-works.html[How Stage3D works]
   * http://jacksondunstan.com/articles/1661[Introduction to AGAL]
-  * http://help.adobe.com/en_US/as3/dev/WSd6a006f2eb1dc31e-310b95831324724ec56-8000.html[List of AGAL operations]
+  * http://tinyurl.com/agal-bytecode[List of AGAL operations]
 ====
 
 All Stage3D rendering is done through vertex- and fragment-shaders.
@@ -320,7 +320,7 @@ But for constants, this is not necessary, so we can ignore it in this filter.
 
 === Trying it out
 
-Our filter is ready, actually (download the complete code https://gist.github.com/PrimaryFeather/ba1e26d568320cd31086[here])!
+Our filter is ready, actually (download the complete code https://git.io/v9OtP[here])!
 Time to give it a test ride.
 
 [source, as3]
@@ -333,7 +333,7 @@ addChild(image);
 ----
 
 .Our filter seems to have an ugly side effect.
-image::customfilter-pma.png[Custom Filter PMA Issue]
+image::customfilter-pma.png[Custom Filter PMA Issue, pdfwidth='7cm']
 
 Blimey!
 Yes, the red value is definitely higher, but why is it now extending beyond the area of the bird!?
@@ -373,10 +373,10 @@ The `tex` method makes sure that we always receive the value with PMA, so no nee
 
 ==== Second Try
 
-When you give the filter another try now (complete code: https://gist.github.com/PrimaryFeather/31f1dd7f04cd6ce886f1[ColorOffsetFilter.as]), you'll see correct alpha values:
+When you give the filter another try now (complete code: https://git.io/v9Oti[ColorOffsetFilter.as]), you'll see correct alpha values:
 
 .That's more like it!
-image::customfilter-pma-solved.png[Custom Filter with solved PMA issue]
+image::customfilter-pma-solved.png[Custom Filter with solved PMA issue, pdfwidth='7cm']
 
 Congratulations!
 You just created your first filter, and it works flawlessly.

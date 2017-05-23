@@ -130,6 +130,6 @@ If you put too many objects into the pool and never retrieve them, it will fill 
 
 === Furthermore ...
 
-The `starling.utilities` package contains more helpers than I can possibly list here.
+The `starling.utils` package contains more helpers than I can possibly list here.
 For a complete list of methods and classes, refer to the http://doc.starling-framework.org/core/starling/utils/package-detail.html[API Reference].
 It will definitely pay off to take a look!

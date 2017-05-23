@@ -13,7 +13,7 @@ Asset Management:: Learn how to load and organize all kinds of assets, like text
 Special Effects:: Effects and filters that will make your graphics stand out.
 Utilities:: A number of helpers to make your life easier.
 
-We've got a lot of ground to cover, so, in the words of Super Mario: "Lets-a-go!"
+We've got a lot of ground to cover, so, in the words of Super Mario: "Let's-a go!"
 
 include::configuring-starling.adoc[]
 

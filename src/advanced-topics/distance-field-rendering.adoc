@@ -19,14 +19,14 @@ My cat qualifies for the job.
 I've got her portrait as a black vector outline, which is perfect for this use-case.
 
 .Say hello to "Seven of Nine", my cat!
-image::cat.png[Cat, 200]
+image::cat.png[Cat, 200, pdfwidth='4cm', scaledwidth='200px']
 
 Unfortunately, Starling can't display vector images; we need Seven as a bitmap texture (PNG format).
 That works great as long as we want to display the cat in roughly the original size (`scale == 1`).
 However, when we enlarge the image, it quickly becomes blurry.
 
 .Conventional textures become blurry when scaled up.
-image::cat-scale.png[Scaled Cat, 400]
+image::cat-scale.png[Scaled Cat, 400, scaledwidth='400px']
 
 // Image credits: https://thenounproject.com/search/?q=cat&i=657985
 
@@ -47,7 +47,7 @@ The field agent works best if you pass it a high resolution texture and let it s
 The distance field encodes the details of the shape, so it can be much smaller than the input texture.
 
 .The resulting distance field texture.
-image::cat-distance-field.png[Cat Distance Field Texture]
+image::cat-distance-field.png[Cat Distance Field Texture, pdfwidth='4cm']
 
 The original, sharp outline of the cat has been replaced with a blurry gradient.
 That's what a distance field is about: in each pixel, it encodes the distance to the closest edge in the original shape.
@@ -127,7 +127,7 @@ I hope that the offerings will improve in the future.
 TIP: As for _Hiero_, https://github.com/libgdx/libgdx/wiki/Distance-field-fonts[here] is a very good introduction describing the process.
 Unfortunately, _Hiero_ can't export the XML format that Starling requires; this little https://gist.github.com/tluyben/4984856[perl script] might help, though.
 
-Whatever tool or process you use: at the end, you will have a texture and a `.fnt`-file, just as usual.
+Whatever tool or process you use: at the end, you will have a texture and a `.fnt` file, just as usual.
 As a reminder, here's the code to create and register a bitmap font:
 
 [source, as3]

@@ -90,8 +90,7 @@ It's completely separate from the `flash.display` package.
 Now start up the project.
 For some of you, the output might be a little anticlimactic, because you are seeing an error message like this:
 
-.You might be greeted with this error instead of the expected quad.
-image::startup-error.png["Startup error message"]
+image::startup-error.png["Startup error message", pdfwidth='7cm']
 
 In that case, it was probably the browser that opened up instead of the standalone Flash Player.
 Check the run/debug configuration and make sure the _Flash Player Projector_ (debug version) is used, not the browser.
@@ -135,7 +134,7 @@ Without those changes, _Stage3D_ is simply not accessible.
 Congratulations! You have successfully compiled and run your first Starling based project.
 
 .Fantastic: a red Starling in a red box.
-image::hello-world.png["Hello World"]
+image::hello-world.png["Hello World", pdfwidth='7cm']
 
 Seriously: the most daunting part now lies behind you.
 Finally, we are ready to dig into a real project!

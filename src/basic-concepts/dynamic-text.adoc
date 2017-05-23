@@ -26,7 +26,7 @@ NOTE: Note that the style of the text is set up via the `format` property, which
 Once created, you can use a _TextField_ just like you'd use an image or quad.
 
 .A few samples of Starling's text rendering capabilities.
-image::textfield-samples.png[TextField Samples, 320]
+image::textfield-samples.png[TextField Samples, 320, pdfwidth='7cm']
 
 === TrueType Fonts
 
@@ -87,13 +87,13 @@ To create the necessary files, there are several options:
 The tools are all similar to use, allowing you to pick one of your system fonts and optionally apply some special effects.
 On export, there are a few things to consider:
 
-* Starling requires the XML variant of the ".fnt" format.
+* Starling requires the XML variant of the `.fnt` format.
 * Make sure to pick the right set of glyphs; otherwise, your font texture will grow extremely big.
 
-The result is a ".fnt" file and an associated texture containing the characters.
+The result is a `.fnt` file and an associated texture containing the characters.
 
 .A bitmap font that has color and drop shadow included.
-image::desyrel-font.png[Bitmap Font, 400]
+image::desyrel-font.png[Bitmap Font, 400, pdfwidth='9cm']
 
 To make such a font available to Starling, you can embed it in the SWF and register it at the TextField class.
 
@@ -122,9 +122,9 @@ Like here:
 ----
 var textField:TextField = new TextField(100, 20, "Hello World");
 textField.format.font = "fontName"; // <1>
-textField.format.fontSize = BitmapFont.NATIVE_SIZE; // <2>
+textField.format.size = BitmapFont.NATIVE_SIZE; // <2>
 ----
-<1> To use the font, simply reference it by its name. By default, that's what is stored in the `face`-attribute within the XML file.
+<1> To use the font, simply reference it by its name. By default, that's what is stored in the `face` attribute within the XML file.
 <2> Bitmap fonts look best when they are displayed in the exact size that was used to create the font texture. You could assign that size manually -- but it's smarter to let Starling do that, via the `NATIVE_SIZE` constant.
 
 ==== Gotchas
@@ -135,8 +135,18 @@ The `format.color` property of the TextField can then be used to tint the font i
 On the other hand, if your font does contains colors (like the sample image above), it's the TextField's `format.color` property that needs to be set to white (`Color.WHITE`).
 That way, the color tinting of the TextField will not affect the texture color.
 
-TIP: For optimal performance, you can even add font textures to your texture atlas!
+[TIP]
+====
+For optimal performance, you can even add bitmap fonts to your texture atlas!
 That way, your texts may be batched together with regular images, reducing draw calls even more.
+
+To do that, simply add the font's PNG image to your atlas, just like the other textures.
+Then initialize the bitmap font with the _SubTexture_ from the atlas and the regular `.fnt` file.
+
+When you support multiple scale factors (a concept we will look at in the <<Mobile Development>> chapter), the process becomes a little difficult, though.
+You cannot simply create one high resolution font and have the atlas generator scale it down; this would result in occasional graphical glitches.
+Each scaled font must be created separately by the bitmap font creator.
+====
 
 ==== The MINI Font
 
@@ -144,7 +154,7 @@ Starling actually comes with one very lightweight bitmap font included.
 It probably won't win any beauty contests -- but it's perfect when you need to display text in a prototype, or maybe for some debug output.
 
 .The "MINI" bitmap font.
-image::mini-font.png[BitmapFont.MINI, 396]
+image::mini-font.png[BitmapFont.MINI, 396, pdfwidth='9cm', scaledwidth='396px']
 
 When I say lightweight, I mean it: each letter is only 5 pixels high.
 There is a trick, though, that will scale it up to exactly 200% its native size.
@@ -153,7 +163,7 @@ There is a trick, though, that will scale it up to exactly 200% its native size.
 ----
 var textField:TextField = new TextField(100, 10, "The quick brown fox ...");
 textField.format.font = BitmapFont.MINI; // <1>
-textField.format.fontSize = BitmapFont.NATIVE_SIZE * 2; // <2>
+textField.format.size = BitmapFont.NATIVE_SIZE * 2; // <2>
 ----
 <1> Use the MINI font.
 <2> Use exactly twice the native size. Since the font uses nearest neighbor scaling, it will stay crisp!

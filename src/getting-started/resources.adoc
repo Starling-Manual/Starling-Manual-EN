@@ -1,6 +1,7 @@
 == Resources
 
-We almost have all the building blocks in place now. Let's see how to set everything up so that we can finally get started with our first project, right?
+We almost have all the building blocks in place now.
+Let's see how to set everything up so that we can finally get started with our first project.
 
 === AIR SDK
 
@@ -24,9 +25,10 @@ The projector starts up much faster, and you don't need to configure any HTML fi
 This page contains a list of all Flash Player versions suitable for developers. Look for the "projector content debugger":
 https://www.adobe.com/support/flashplayer/debug_downloads.html[Adobe Flash Player Debug Downloads]
 
-NOTE: The debugger is significantly slower than the standard version. Keep that in mind when you're working on performance optimization.
+NOTE: The debugger is significantly slower than the standard version.
+Keep that in mind when you are working on performance optimization.
 
-Again, your IDE might need to know how to find the correct player.
+Your IDE might need to know how to find the correct player.
 For example, in _IDEA_, this setting is part of the debug configurations screen; other IDEs might simply use the system default.
 In any case, it's important to always use a player version that's equal to or higher than the AIR SDK version you compiled the SWF with.
 
@@ -35,7 +37,7 @@ In any case, it's important to always use a player version that's equal to or hi
 Now all that's left to download is Starling itself.
 You can choose between two ways of doing that.
 
-a. Download the latest release as a zip-file from http://gamua.com/starling/download/[gamua.com/starling/download].
+a. Download the latest release as a zip-file from the http://gamua.com/starling/download/[Gamua website].
 b. Clone Starling's _Git_ repository.
 
 The advantage of the former is that it comes with a precompiled SWC file (found in the folder `starling/bin`) that is easily linked to your project.

@@ -1,14 +1,14 @@
 == Meshes
 
 _Mesh_ is the basic building block of all tangible display objects.
-With "tangible", I mean a "leaf" object in the display list: an object that is not a container but is rendered directly to the back buffer.
+By "tangible", I mean a "leaf" object in the display list: an object that is not a container but is rendered directly to the back buffer.
 Since it is so important, I want to look at this class in a little more detail.
 
 In a nutshell, a _Mesh_ represents a list of triangles to be rendered via _Stage3D_.
 It was mentioned a few times already, since it's the base class of _Quad_ and _Image_.
 As a reminder, here is the class hierarchy we are talking about:
 
-[plantuml, mesh-classes-from-display-object]
+[plantuml, mesh-classes-from-display-object, width=137, pdfwidth='2.82cm', scaledwidth='137px']
 ....
 include::../defaults.plantuml[]
 
@@ -45,7 +45,7 @@ We did this by defining three vertices and referencing them clockwise.
 After all, that's what a GPU can do best: drawing triangles -- lots of them.
 
 .The triangle we just created.
-image::triangle.png[Triangle, 180]
+image::triangle.png[Triangle, 180, pdfwidth='3cm', scaledwidth='180px']
 
 === Extending Mesh
 
@@ -56,7 +56,7 @@ To illustrate how to create custom meshes, we will now write a simple class call
 Its task: to render a regular n-sided polygon with a custom color.
 
 .These are the kinds of regular polygons we want to draw.
-image::polygons.png[Polygons]
+image::polygons.png[Polygons, pdfwidth='10cm']
 
 We want the class to act just like a built-in display object.
 You instantiate it, move it to a certain position and then add it to the display list.
@@ -78,7 +78,7 @@ Like all other shapes, our regular polygon can be built from just a few triangle
 Here's how we could set up the triangles of a pentagon (an n-gon with `n=5`).
 
 .A pentagon and its vertices.
-image::pentagon.png[Pentagon, 200]
+image::pentagon.png[Pentagon, 200, pdfwidth='4.5cm', scaledwidth='200px']
 
 The pentagon is made up of six vertices spanning up five triangles.
 We give each vertex a number between 0 and 5, with 5 being in the center.
@@ -119,15 +119,15 @@ private function createVertexData(
 <1> Set up center vertex (last index).
 <2> Set up edge vertices.
 
-Since our mesh has a uniform color, we assign the the same color to each vertex.
+Since our mesh has a uniform color, we assign the same color to each vertex.
 The positions of the edge vertices (the corners) are distributed along a circle with the given radius.
 
 === Index Setup
 
-So much for the vertices.
+That's it for the vertices.
 Now we need to define the triangles that make up the polygon.
 
-_Stage3D_ wants a simple list if indices, with each three successive indices referencing one triangle.
+_Stage3D_ wants a simple list of indices, with each three successive indices referencing one triangle.
 It's a good practice to reference the indices clockwise; that convention indicates that we are looking at the front side of the triangle.
 Our pentagon's list would look like this:
 
@@ -192,7 +192,7 @@ They are often called _UV-coordinates_, which is a reference to the names that a
 Note that the UV range is defined to be within _0_ and _1_, regardless of the actual texture dimensions.
 
 .The texture coordinates of the polygon are in the range 0-1.
-image::pentagon-texcoords.png[Pentagon Texture Coordinates, 250]
+image::pentagon-texcoords.png[Pentagon Texture Coordinates, 250, pdfwidth='5cm', scaledwidth='250px']
 
 With this information, we can update the `createVertexData` method accordingly.
 
@@ -234,7 +234,7 @@ addChild(ngon);
 ----
 
 .Our textured pentagon.
-image::pentagon-textured.png[Textured Pentagon, 230]
+image::pentagon-textured.png[Textured Pentagon, 230, pdfwidth='4.5cm', scaledwidth='230px']
 
 === Anti-Aliasing
 
@@ -263,7 +263,7 @@ We will take a look at alternative ways to fight aliasing issues separately in t
 endif::[]
 
 .Anti-Aliasing can smooth pixelated edges.
-image::anti-aliasing.png[Anti-Aliasing, 380]
+image::anti-aliasing.png[Anti-Aliasing, 380, pdfwidth='7.5cm', scaledwidth='380px']
 
 === Mesh Styles
 
@@ -303,7 +303,7 @@ image.style = lightStyle;
 ----
 
 .The Dynamic Lighting extension in action.
-image::dynamic-lighting.png[Dynamic Lighting]
+image::dynamic-lighting.png[Dynamic Lighting, pdfwidth='7cm']
 
 Styles are extremely versatile; their possible applications are almost without limit.
 And since meshes with the same style can be batched together, you do not sacrifice performance in any way.
@@ -313,7 +313,7 @@ The main downsides of styles are simply that they can only be assigned to a mesh
 Furthermore, it's not possible to combine several styles on one mesh.
 
 Still: styles are a powerful tool that any Starling developer should be familiar with.
-Stay tuned: in a <<Custom Styles, later section>>, I'll show you how to create your own mesh style from scratch, shaders and all!
+Stay tuned: in the section <<Custom Styles>>, I will show you how to create your own mesh style from scratch, shaders and all!
 
 [NOTE]
 ====

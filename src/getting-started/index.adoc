@@ -1,6 +1,6 @@
 = Getting Started
 
-This chapter will provide you with an overview of Starling and technologies it builds upon.
+This chapter will provide you with an overview of Starling and the technologies it builds upon.
 We will first take a brief look at the history of _Flash_ and _AIR_ and how Starling came into being.
 Then, we will evaluate the tools and resources that will help you when working with Starling.
 At the end of the chapter, you will have your first "Hello World" example up and running.
@@ -23,4 +23,10 @@ You should now have a basic understanding of Starling and the tools and resource
 You know how to acquire and install the Adobe AIR SDK, and you picked the IDE that fits your needs best.
 The Starling-powered "Hello World" application proved that everything is set up correctly.
 
+ifdef::target-handbook[]
 It's time to jump into your first real game!
+endif::[]
+
+ifdef::target-manual[]
+It's time to dive into the actual Starling API!
+endif::[]

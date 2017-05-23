@@ -19,7 +19,7 @@ sprite.mask = mask; // ← use the quad as a mask
 This will yield the following result:
 
 .Using a rectangular mask.
-image::mask-rectangular.png[Rectangular Mask]
+image::mask-rectangular.png[Rectangular Mask, pdfwidth='7cm']
 
 The logic behind masks is simple: a pixel of a masked object will only be drawn if it is within the mask's polygons.
 This is crucial: the shape of the mask is defined by its polygons -- not its texture!
@@ -66,7 +66,7 @@ This might change in a future release, though!
 
 That brings us to the _Polygon_ class.
 A _Polygon_ (package `starling.geom`) describes a closed shape defined by a number of straight line segments.
-It's a spiritual successor of Flash's _Rectangle_ class, but supporting arbitrary shapes.footnote:[The only limitation: line segments must not intersect one another.]
+It's a spiritual successor of Flash's _Rectangle_ class, but supporting (mostly) arbitrary shapes.
 
 Since _Canvas_ contains direct support for polygon objects, it's the ideal companion of _Polygon_.
 This pair of classes will solve all your mask-related needs.
@@ -93,6 +93,7 @@ You always only see it indirectly via its effect on the masked display object.
 Positioning::
 If the mask is not part of the display list (i.e. it has no parent), it will be drawn in the local coordinate system of the masked object: if you move the object, the mask will follow.
 If the mask _is_ part of the display list, its location will be calculated just as usual.
+Depending on the situation, you might prefer one or the other behavior.
 
 Stencil Buffer::
 Behind the scenes, masks use the _stencil buffer_ of the GPU, making them very lightweight and fast.

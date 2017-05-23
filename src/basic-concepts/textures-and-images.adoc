@@ -1,6 +1,6 @@
 == Textures & Images
 
-We came across the _Image_ and _Texture_ classes several times already, and indeed: they are some of the most useful classes in Starling.
+We came across the _Image_ and _Texture_ classes several times already; they are some of the most useful classes in Starling.
 But how are they used, and what's the difference between the two?
 
 === Textures
@@ -76,7 +76,7 @@ var texture:Texture = Texture.fromEmbeddedAsset(Mushroom); // <2>
 ====
 This is not only less code, but it will also require less memory!
 
-The `fromEmbeddedAsset` method does some behind-the-scenes magic to guard for a context loss, and does it more efficient than the conventional `fromBitmap` method can do.
+The `fromEmbeddedAsset` method does some behind-the-scenes magic to guard for a context loss, and does it more efficiently than the conventional `fromBitmap` method can do.
 We will come back to this topic later, but for now, just remember that this is the preferred way of creating a texture from an embedded bitmap.
 ====
 
@@ -103,7 +103,7 @@ The easiest way to do that is by using the _Image_ class or one of its cousins.
 
 Let's zoom in on that part of the family tree.
 
-[plantuml, mesh-classes]
+[plantuml, mesh-classes, width=111, pdfwidth='2.28cm', scaledwidth='111px']
 ....
 include::../defaults.plantuml[]
 
@@ -140,7 +140,7 @@ Personally, I'd always pick the approach that saves me more keystrokes.
 What's happening behind the scenes is exactly the same in both cases, though.
 
 .A texture is mapped onto a quad.
-image::texture-mapping.png[Texture-Mapping]
+image::texture-mapping.png[Texture-Mapping, pdfwidth='9cm']
 
 === One Texture, multiple Images
 
@@ -177,7 +177,7 @@ By using a texture atlas, you avoid both the texture switches and the power-of-t
 All textures are within one big "super-texture", and Starling takes care that the correct part of this texture is displayed.
 
 .A texture atlas.
-image::penguflip-atlas.png[Texture Atlas]
+image::penguflip-atlas.png[Texture Atlas, pdfwidth='9cm']
 
 The trick is to have _Stage3D_ use this big texture instead of the small ones, and to map only a part of it to each quad that is rendered.
 This will lead to a very efficient memory usage, wasting as little space as possible.
@@ -208,7 +208,7 @@ But how do you combine all your textures into such an atlas?
 Thankfully, you don't have to do that manually; there are lots of tools around that will help you with that task.
 Here are two candidates, but _Google_ will bring up many more.
 
-* https://www.codeandweb.com/texturepacker/starling?source=gamua[TexturePacker] is my personal favorite. You won't find any tool that allows for so much control about your sprite sheets, and its Starling support is excellent (ATF textures, anyone?).
+* https://www.codeandweb.com/texturepacker/[TexturePacker] is my personal favorite. You won't find any tool that allows for so much control over your sprite sheets, and its Starling support is excellent (ATF textures, anyone?).
 * http://renderhjs.net/shoebox/[Shoebox] is a free tool built with _AIR_. While it doesn't have as many options for atlas creation as _TexturePacker_, it contains lots of related functionality, like bitmap font creation or sprite extraction.
 
 ==== Using the Atlas
@@ -298,7 +298,8 @@ renderTexture.drawBundled(function():void // <1>
 <1> Activate bundled drawing by encapsulating all draw-calls in a function.
 <2> Inside the function, call `draw` just like before.
 
-To erase parts of a render texture, you can use any display object like a "rubber" by setting its blend mode to BlendMode.ERASE.
+You can use any display object like an eraser by setting its blend mode to `BlendMode.ERASE`.
+That way, you can selectively remove parts of the texture.
 
 [source, as3]
 ----

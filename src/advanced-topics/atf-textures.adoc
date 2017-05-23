@@ -7,7 +7,7 @@ However, _Stage3D_ offers an alternative that has several unique advantages: the
 * Compressed textures require just a fraction of their conventional counterparts.
 * Decompression is done directly on the GPU.
 * Uploading to graphics memory is faster.
-* Uploading can be done asynchronously: you can load new textures without interrupting gameplay.footnote:[Beginning with AIR 24 and Starling 2.2, this is possible with conventional textures, as well.]
+* Uploading can be done asynchronously: you can load new textures without interrupting gameplay. (Beginning with AIR 24, this is possible with conventional textures, as well.)
 
 === Graphics Memory
 
@@ -50,18 +50,18 @@ Unfortunately, each GPU vendor thought he could do better than the others, and s
 In other words: depending on where your game is running, it will need a different kind of texture.
 How should you know beforehand which file to include?
 
-This where ATF comes to the rescue.
+This is where ATF comes to the rescue.
 It is a format that Adobe created especially for _Stage3D_; actually, it is a container file that can include up to four different versions of a texture.
 
 * *PVRTC* (PowerVR Texture Compression) is used in PowerVR GPUs. It is supported by all generations of the iPhone, iPod Touch, and iPad.
 * *DXT1/5* (S3 Texture Compression) was originally developed by S3 Graphics. It is now supported by both Nvidia and AMD GPUs, and is thus available on most desktop computers, as well as some Android phones.
-* *ETC* (Ericsson Texture Compression) is used on many mobile phones, most notably on Android.
+* *ETC1* (Ericsson Texture Compression) is used on many mobile phones, most notably on Android.
 * *ETC2* provides higher quality RGB and RGBA compression. It is supported by all Android and iOS devices that also support OpenGL ES 3.
 
-I wrote before that ATF is a _container_ format. That means that it can include any combination of the the above formats.
+I wrote before that ATF is a _container_ format. That means that it can include any combination of the above formats.
 
 .An ATF file is actually a container for other formats.
-image::atf-container.png[ATF container]
+image::atf-container.png[ATF container, pdfwidth='12cm']
 
 When you include all formats (which is the default), the texture can be loaded on any Stage3D-supporting device, no matter if your application is running on iOS, Android, or on the Desktop.
 You don't have to care about the internals!

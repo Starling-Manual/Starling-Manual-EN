@@ -98,8 +98,8 @@ That area can be anywhere within the native stage, which means: anywhere within 
 In Starling, that area is called the _viewPort_.
 Most of the time, you will want to use all of the available area, but sometimes it makes sense to limit rendering to a certain region.
 
-Think of a game designed in an aspect ratio of 4:3, running on an 16:9 screen.
-By centering the 4:3 _viewPort_ on the screen, you will end up with a "letterboxed" game, with black bars at the top and bottom.
+Think of a game designed in an aspect ratio of 4:3, running on a 16:9 screen.
+By centering the 4:3 _viewPort_ on the screen, you will end up with a "letterboxed" game, with black bars at the left and right.
 
 // TODO: add image
 
@@ -167,7 +167,7 @@ That's what _Context3D profiles_ (also called _render profiles_) are for.
 .What is a Context3D?
 ====
 When using _Stage3D_, you are interacting with a rendering pipeline that features a number of properties and settings.
-The _context_ is the object that encapsulate that pipeline.
+The _context_ is the object that encapsulates that pipeline.
 Creating a texture, uploading shaders, rendering triangles -- that's all done through the context.
 ====
 
@@ -182,7 +182,7 @@ Here's an overview of each profile, starting with the lowest.
 
 `BASELINE`:: The minimum profile to be found on mobile devices. Starling runs well with this profile; the removal of the power-of-two limitation allows for more efficient memory usage, and the length of shader programs is easily sufficient for its needs.
 
-`BASLINE_EXTENDED`:: Raises the maximum texture size from `2048x2048` to `4096x4096` pixels, which is crucial for high-resolution devices.
+`BASELINE_EXTENDED`:: Raises the maximum texture size from `2048x2048` to `4096x4096` pixels, which is crucial for high-resolution devices.
 
 `STANDARD_CONSTRAINED`, `STANDARD`, `STANDARD_EXTENDED`:: Starling currently doesn't need any of the features coming with these profiles. They provide additional shader commands and other low-level enhancements.
 
@@ -219,7 +219,7 @@ It happens surprisingly often in an application or game that a scene stays compl
 The application might be presenting a static screen or wait for user input, for example.
 So why redraw the stage at all in those situations?
 
-That's exactly the point of the `skipUnchangedFrames`-property.
+That's exactly the point of the `skipUnchangedFrames` property.
 If enabled, static scenes are recognized as such and the back buffer is simply left as it is.
 On a mobile device, the impact of this feature can't be overestimated.
 There's simply no better way to enhance battery life!
@@ -249,7 +249,7 @@ _starling.showStats = true;
 ----
 
 .The statistics display (by default at the top left).
-image::stats-display.png[The statistics display]
+image::stats-display.png[The statistics display, pdfwidth='4cm']
 
 What's the meaning of those values?
 

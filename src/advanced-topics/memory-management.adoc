@@ -213,7 +213,7 @@ Especially if you're making use of gradients, 16 bit textures might become rathe
 However, there's a solution for this: dithering!
 
 .Dithering can conceal a reduced color depth.
-image::dithering.png[Dithering]
+image::dithering.png[Dithering, pdfwidth='10cm']
 
 To make it more apparent, the gradient in this sample was reduced to just 16 colors (4 bits).
 Even with this low number of colors, dithering manages to deliver an acceptable image quality.
@@ -244,7 +244,7 @@ assets.loadQueue(/* ... */);
 Mipmaps are downsampled versions of your textures, intended to increase rendering speed and reduce aliasing effects.
 
 .Sample of a texture with mipmaps.
-image::mipmap.jpg[Mipmap]
+image::mipmap.jpg[Mipmap, pdfwidth='9cm']
 
 Since version 2.0, Starling doesn't create any mipmaps by default.
 That turned out to be the preferable default, because without mipmaps:
@@ -277,7 +277,7 @@ TIP: Bitmap Font textures are a great candidate for 16 bit textures, because the
 
 === Optimize your Texture Atlas
 
-It should be your top priority to pack your texture atlases as tightly as possible. Tools like https://www.codeandweb.com/texturepacker/starling?source=gamua[TexturePacker] have several options that will help with that:
+It should be your top priority to pack your texture atlases as tightly as possible. Tools like https://www.codeandweb.com/texturepacker/starling[TexturePacker] have several options that will help with that:
 
 * Trim transparent borders away.
 * Rotate textures by 90 degrees if it leads to more effective packing.
@@ -299,10 +299,10 @@ This is priceless!
 
 NOTE: Adobe Scout is part of the _free_ version of Adobe's Creative Cloud membership. You don't have to become a paying subscriber of CC to get it.
 
-Here is a great tutorial from Thibault Imbert that explains in detail how to work with Adobe Scout: http://www.adobe.com/devnet/scout/articles/adobe-scout-getting-started.html[Getting started with Adobe Scout]
+Here is a great tutorial from Thibault Imbert that explains in detail how to work with Adobe Scout: http://www.adobe.com/devnet/scout/articles/adobe-scout-getting-started.html[Getting started with Adobe Scout].
 
 .Adobe Scout
-image::scout-screenshot.png[Adobe Scout]
+image::scout-screenshot.png[Adobe Scout, pdfwidth='12cm']
 
 === Keep an Eye on the Statistics Display
 
@@ -313,7 +313,7 @@ Granted, the conventional memory value is often misleading -- you never know whe
 The graphics memory value, on the other hand, is extremely accurate.
 When you create a texture, the value will rise; when you dispose a texture, it will decrease -- immediately.
 
-Actually, when I added this feature to Starling, it took about five minutes and I had already found the first memory leak -- in Starling's demo app.
+Actually, just about five minutes after I added this feature to Starling, I had already found the first memory leak -- in the demo app.
 I used the following approach:
 
 * In the main menu, I noted down the used GPU memory.
@@ -322,7 +322,7 @@ I used the following approach:
 * After returning from one of the scenes, that value was not restored, and indeed: a code review showed that I had forgotten to dispose one of the textures.
 
 .The statistics display shows the current memory usage.
-image::stats-display.png[The statistics display]
+image::stats-display.png[The statistics display, pdfwidth='4cm']
 
 Needless to say: Scout offers far more details on memory usage.
 But the simple fact that the statistics display is always available makes it possible to find things that would otherwise be easily overlooked.

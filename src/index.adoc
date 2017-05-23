@@ -35,15 +35,17 @@ Keep on reading to dive right into it!
 [NOTE]
 .The Starling Handbook
 ====
-[.right]
+[.right, link=https://gamua.com/starling/handbook/]
 image::handbook-mockup.jpg[The Starling Handbook, 250]
 
-I'm also working on a book that contains not only the complete contents of this manual, but adds lots of additional HOW-TOs and guides.
-A step-by-step tutorial will lead you through the development of a *complete game*.
+Are you looking for an extended version of this manual? That's the _Starling Handbook_.
+In addition to all you find here, it adds a plethora of additional information:
 
-* Find out more about it on the http://gamua.com/blog/2016/09/the-starling-handbook/[Gamua Blog].
-* Or download a http://bit.ly/2dfNIQF[Book Preview] right away.
-* http://eepurl.com/chQGpD[Sign up] to get notified when it launches!
+* Learn how to create a complete game from start to finish.
+* Get inspired by cookbook-like recipes for all tastes.
+* Learn first hand about Feathers and Starling Builder.
+
+Find out all about it here: https://gamua.com/starling/handbook/[*The Starling Handbook*]
 ====
 
 // include main chapters
@@ -81,8 +83,9 @@ Pay us a visit at the official http://forum.starling-framework.org[Starling Foru
 
 === Want more?
 
-If you just can't get enough of Starling, don't forget to http://eepurl.com/chQGpD[sign up] for the launch of the http://gamua.com/blog/2016/09/the-starling-handbook/[Starling Handbook]!
+If you want to become a true Starling master, don't forget to get yourself a copy of the https://gamua.com/starling/handbook/[Starling Handbook]!
 In addition to all the contents of this manual, it goes above and beyond to provide you with easy to follow recipes you can put to use in your own projects.
 And you're supporting the continuing development of Starling at the same time!
 
+[link=https://gamua.com/starling/handbook/]
 image::handbook-mockup.jpg[The Starling Handbook]

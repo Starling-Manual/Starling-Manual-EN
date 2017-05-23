@@ -164,12 +164,12 @@ These are the crucial properties that make up a state:
 
 If you set up your scene in a way that creates as little state changes as possible, your rendering performance will profit immensely.
 
-Again, Starling's statics display provides useful data.
+Again, Starling's statistics display provides useful data.
 It shows exactly how many draw calls are executed per frame.
 The more state changes you have, the higher this number will be.
 
 .The statistics display includes the current number of draw calls.
-image::stats-display.png[Statistics Display]
+image::stats-display.png[Statistics Display, pdfwidth='4cm']
 
 [NOTE]
 ====
@@ -230,7 +230,7 @@ But while the display list on the left will force a state change for each object
 ==== Use the MeshBatch class
 
 The fastest way to draw a huge number of quads or other meshes at once is to use the _MeshBatch_ class.
-That's the same class that is used internally by Starling for all rendering, so it's heavily optimized.footnote:[If you're still using Starling 1.x, look for ''QuadBatch'' instead.]
+That's the same class that is used internally by Starling for all rendering, so it's heavily optimized.
 It works like this:
 
 [source, as3]
@@ -261,6 +261,8 @@ As expected, this has some downsides, though:
 
 For these reasons, it's only suitable for very specific use-cases (the _BitmapFont_ class, for example, uses a mesh batch internally).
 In those cases, it's definitely the fastest option, though. You won't find a more efficient way to render a huge number of objects in Starling.
+
+NOTE: If you're still using Starling 1.x, look for the _QuadBatch_ class instead.
 
 ==== Batch your TextFields
 

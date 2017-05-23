@@ -4,7 +4,7 @@ Oh, where are the days we developed games for a single screen?
 Back then, we had a small rectangular area in an HTML page, and that's where we placed our sprites, texts and images.
 A single resolution to work for -- wasn't that nice?
 
-Alas ... the times they are a-changin'!
+Alas -- the times they are a-changin'!
 Mobile phones come in all flavors and sizes, and even desktop computers and notebooks feature high density displays.
 This is great news for our consumer-selves, but it doesn't exactly make our lives as developers easier, that's for sure!
 
@@ -38,7 +38,7 @@ We set the _viewPort_ to the full size of the screen: 320×480 pixels.
 Per default, the stage will have exactly the same dimensions.
 
 .Our game on the original iPhone.
-image::iphone-penguflip.png[PenguFlip on the iPhone, 120]
+image::iphone-penguflip.png[PenguFlip on the iPhone, 120, scaledwidth='120px']
 
 So far, so easy: this works just like in, say, a game for the browser.
 (That would be Internet Explorer 6, then, right?)
@@ -52,10 +52,20 @@ Hurray! Apparently, our game was a huge success in 2007, and it's still in the t
 There's no time to lose: we must make sure it looks well on the iPhone 4 that's going to come out in a few weeks.
 
 Since we're coming from the future, we know about its major innovation, the high-resolution screen dubbed "Retina Display" by the Apple marketing team.
-We fire up our game from 2007 and start it up on this yet-to-be released device.
+To support this resolution in Adobe AIR, we need to activate the following setting in the application descriptor (the XML file that configures your AIR app):
+
+[source, xml]
+----
+<iPhone>
+  <!-- Display Resolution ("standard" or "high"). Default "standard". -->
+  <requestedDisplayResolution>high</requestedDisplayResolution>
+</iPhone>
+----
+
+With that out of the way, we fire up our game from 2007 and start it up on this yet-to-be released device.
 
 .That's definitely not intended.
-image::iphone4-wrong.png[PenguFlip with a wrong scale on the iPhone4, 160]
+image::iphone4-wrong.png[PenguFlip with a wrong scale on the iPhone4, 160, scaledwidth='160px']
 
 Damn, the game is now only taking up a quarter of the screen!
 Why is that?
@@ -93,7 +103,7 @@ NOTE: Since those values no longer indicate pixels, we are now calling them _poi
 On the iPhone 4, the game now looks like this:
 
 .Better, but a little blurry.
-image::iphone4-scale-blurry.png[PenguFlip scaled up blurry, 285]
+image::iphone4-scale-blurry.png[PenguFlip scaled up blurry, 285, scaledwidth='285px']
 
 That's better: we are now using the full screen size.
 However, it's also a little blurry.
@@ -185,9 +195,9 @@ This is it: now we've got a crisp-looking retina game!
 Our player's will appreciate it, I'm sure of that.
 
 .Now we're making use of the retina screen!
-image::iphone4-scale-hd.png[PenguFlip on the iPhone, 285]
+image::iphone4-scale-hd.png[PenguFlip on the iPhone, 285, scaledwidth='285px']
 
-TIP: Tools like https://www.codeandweb.com/texturepacker/starling?source=gamua[TexturePacker] make this process really easy.
+TIP: Tools like https://www.codeandweb.com/texturepacker/starling[TexturePacker] make this process really easy.
 Feed them with all your individual textures (in the highest resolution) and let them create multiple texture atlases, one for each scale factor.
 
 We celebrate our success at a http://gizmodo.com/5520438/how-apple-lost-the-next-iphone[bar] in Redwood, drink a beer or two, and move on.
@@ -212,7 +222,7 @@ Yes, our game might look a little blurry on some devices, but it's not too bad: 
 Most users won't notice.
 
 .Letterbox scaling.
-image::iphone5-letterbox.png[PenguFlip with letterbox bars, 160]
+image::iphone5-letterbox.png[PenguFlip with letterbox bars, 160, scaledwidth='160px']
 
 I call this the *Letterbox Strategy*.
 
@@ -310,7 +320,7 @@ Here, it pays off if you created your game in clean components, with separate cl
 For any element where it makes sense, you pass the size along (like in the _LifeBar_ constructor above) and let it act accordingly.
 
 .No more letterbox bars: the complete screen is put to use.
-image::iphone5-smart-objects.png[PenguFlip without letterbox bars, 160]
+image::iphone5-smart-objects.png[PenguFlip without letterbox bars, 160, scaledwidth='160px']
 
 That works really well on the iPhone 5.
 We should have done that in 2012, dammit!
@@ -515,14 +525,14 @@ public function ScreenSetup(
     else if (exactScale < 1.75) _scale = 1.5;
     else _scale = Math.round(exactScale);
 
-    _stageWidth  = int(fullScreenWidth  / _scale); // <4>
-    _stageHeight = int(fullScreenHeight / _scale);
-
     assetScales.sort(Array.NUMERIC | Array.DESCENDING);
     _assetScale = assetScales[0];
 
-    for (var i:int=0; i<assetScales.length; ++i) // <5>
+    for (var i:int=0; i<assetScales.length; ++i) // <4>
         if (assetScales[i] >= _scale) _assetScale = assetScales[i];
+
+    _stageWidth  = int(fullScreenWidth  / _scale); // <5>
+    _stageHeight = int(fullScreenHeight / _scale);
 
     _viewPort = new Rectangle(0, 0, _stageWidth * _scale, _stageHeight * _scale);
 }
@@ -531,8 +541,9 @@ public function ScreenSetup(
 <2> Our base density is 160 dpi (or 130 dpi on iPads). A device with such a density will use scale factor "1".
 <3> Our scale factors should be integer values or `1.5`. This code picks the closest one.
 <4> Here, we decide the set of assets that should be loaded.
+<5> The stage size depends on the scale factor we just created.
 
-TIP: If you want to see the results of this code if run on the devices I used in the tables above, please refer to this https://gist.github.com/PrimaryFeather/505fc4f120c06d09d2c56910476ab710[Gist].
+TIP: If you want to see the results of this code if run on the devices I used in the tables above, please refer to this https://git.io/v9OmG[Gist].
 You can easily add some more devices to this list and check out if you are pleased with the results.
 
 Now that everything is in place, we can adapt the startup-code of Starling.

@@ -1,8 +1,8 @@
 == Asset Management
 
 One thing should be clear by now: textures make up a big part of every application's resources.
-Especially games require a lot of graphics; from the user interface to the characters, items, backgrounds, etc.
-But that's not all: you will probably need to manage sounds and configuration files, too.
+Especially when we are talking about games, there is a lot to manage; from the user interface to the characters, items, backgrounds, etc.
+But that's not all: you will probably need to deal with sounds and configuration files, too.
 
 For referencing these assets, you've got several choices.
 
@@ -27,7 +27,7 @@ To accomplish this, the AssetManager uses a three-step approach:
 
 1. You add pointers to your assets to a queue, e.g. `File` objects or URLs.
 2. You tell the AssetManager to process the queue.
-3. As soon as the queue finishes processing, you can access all assets with corresponding `get`-methods.
+3. As soon as the queue finishes processing, you can access all assets with corresponding `get` methods.
 
 [TIP]
 ====
@@ -69,7 +69,7 @@ assets.enqueue(appDir.resolvePath("textures/atlas.png"));
 ----
 
 **Bitmap Fonts** work just the same.
-In this case, you need to make sure that the `file` attribute in the XML (the `.fnt`-file) is set up correctly.
+In this case, you need to make sure that the `file` attribute in the XML (the `.fnt` file) is set up correctly.
 
 [source, as3]
 ----
@@ -156,7 +156,7 @@ This will make the textures from the `1x` and `2x` folders use scale factors of 
 === Loading the Assets
 
 Now that the assets are enqueued, you can load all of them at once.
-Depending on the number and size of assets your are loading, this can take a while.
+Depending on the number and size of assets you are loading, this can take a while.
 For that reason, it probably makes sense to show some kind of progress bar or loading indicator to your users.
 
 [source, as3]

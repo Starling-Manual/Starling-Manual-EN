@@ -6,9 +6,11 @@ To help with that, Starling offers a very flexible animation engine.
 
 If you think about it, there are two types of animations.
 
-* On the one hand, you've got animations that are so dynamic that you don't know beforehand what exactly will happen. Think of an enemy that's moving toward the player: it's direction and speed need to be updated each frame, depending on the environment. Or physics: each additional force or collision changes everything.
-
-* Then there are animations that follow a meticulous plan; you know from the beginning exactly what will happen. Think of fading in a message box or transitioning from one screen to another.
+* On the one hand, you've got animations that are so dynamic that you don't know beforehand what exactly will happen.
+  Think of an enemy that's moving towards the player: its direction and speed need to be updated each frame, depending on the environment.
+  Or physics: each additional force or collision changes everything.
+* Then there are animations that follow a meticulous plan; you know from the beginning exactly what will happen.
+  Think of fading in a message box or transitioning from one screen to another.
 
 We will look at both of these types in the following sections.
 
@@ -28,17 +30,17 @@ Here is how you use it:
 ----
 public function CustomObject()
 {
-    addEventListener(Event.ENTER_FRAME, onEnterFrame); // <1>
+    addEventListener(EnterFrameEvent.ENTER_FRAME, onEnterFrame); // <1>
 }
 
-private function onEnterFrame(event:Event, passedTime:Number):void // <2>
+private function onEnterFrame(event:EnterFrameEvent):void // <2>
 {
-    trace("Time passed since last frame: " + passedTime);
+    trace("Time passed since last frame: " + event.passedTime);
     bird.advanceTime(passedTime);
 }
 ----
 <1> You can add a listener to this event anywhere, but the constructor is a good candidate.
-<2> That's how the corresponding event listener looks like.
+<2> That's what the corresponding event listener looks like.
 
 The method `onEnterFrame` is called once per frame, and it's passed along the exact time that has elapsed since the previous frame.
 With that information, you can move your enemies, update the height of the sun, or do whatever else is needed.
@@ -47,6 +49,30 @@ The power behind this event is that you can do completely different things each 
 You can dynamically react to the current state of the game.
 
 For example, you could let an enemy take one step towards the player; a simple form of enemy AI, if you will!
+
+.Simplified Version
+****
+Actually, I tend to use the following, slightly condensed code instead:
+
+[source, as3]
+----
+public function CustomObject()
+{
+    addEventListener(Event.ENTER_FRAME, onEnterFrame); // <1>
+}
+
+private function onEnterFrame(event:Event, passedTime:Number):void // <2>
+{
+    trace("Time passed since last frame: " + event.passedTime);
+}
+----
+<1> Since the `ENTER_FRAME` event is used so often, Starling defines the type constant on the _Event_ class, too.
+<2> You can tell Starling to send `passedTime` as the second parameter of the event handler.
+    Since you don't need any other properties of the _EnterFrameEvent_, there is no need to fully qualify the class.
+
+This is exactly equivalent to the original code -- the sole advantage being that you save a couple of key strokes.
+For lazy developers like me, that's all the reason I need to prefer this variant!
+****
 
 === Tweens
 
@@ -59,7 +85,7 @@ Those animations are described in an object called _Tween_.
 NOTE: The term "Tween" comes from hand drawn animations, where a lead illustrator would draw important key frames, while the rest of the team drew the frames in-be**tween** those frames.
 
 .The different frames of a tween.
-image::soccer-tween.png[Soccer Tween]
+image::soccer-tween.png[Soccer Tween, pdfwidth='9cm']
 
 Enough theory, let's go for an example:
 
@@ -91,11 +117,11 @@ tween.scaleTo(2);    // animate "scale"
 tween.fadeTo(0);     // animate "alpha"
 ----
 
-An interesting aspect of tweens is that that you can change the way the animation is executed, e.g. letting it start slow and get faster over time.
+An interesting aspect of tweens is that you can change the way the animation is executed, e.g. letting it start slow and get faster over time.
 That's done by specifying a transition type.
 
 .The available transition types. The default, `linear`, was omitted.
-image::transitions.png[Transitions]
+image::transitions.png[Transitions, 576, pdfwidth='100%']
 
 The following example shows how to specify such a transition and introduces a few more tricks the class is capable of.
 
@@ -160,7 +186,7 @@ Let's say your stage contains a game area where the main action takes place.
 When the user clicks on the pause button, you want to pause the game and show an animated message box, maybe providing an option to return to the menu.
 
 When that happens, the game should freeze completely: none of its animations should be advanced any longer.
-The problem: the message box itself use some animations, too, so we can't just stop the default juggler.
+The problem: the message box itself uses some animations too, so we can't just stop the default juggler.
 
 In such a case, it makes sense to give the game area its own juggler.
 As soon as the exit button is pressed, this juggler should just stop animating anything.
@@ -202,7 +228,7 @@ public class GameArea
 That way, you have neatly separated the animations of the game and the message box.
 
 By the way: the juggler is not restricted to Tweens.
-As soon as a class implements the `IAnimatable` interface, you can add it to the juggler.
+As soon as a class implements the _IAnimatable_ interface, you can add it to the juggler.
 That interface has only one method:
 
 [source, as3]
@@ -213,6 +239,20 @@ function advanceTime(time:Number):void;
 By implementing this method, you could e.g. create a simple MovieClip-class yourself.
 In its `advanceTime` method, it would constantly change the texture that is displayed.
 To start the movie clip, you'd simply add it to a juggler.
+
+[TIP]
+====
+This also opens up another strategy for handling custom jugglers.
+Since the _Juggler_ class implements _IAnimatable_ as well, jugglers can be added to other jugglers!
+
+[source, as3]
+----
+Starling.juggler.add(_juggler);
+----
+
+That way, you don't have to set up any `ENTER_FRAME` event listeners; just add your custom juggler to the default juggler.
+When you want to pause this group of animations, simply remove the juggler again.
+====
 
 This leaves one question, though: when and how is an object removed from the juggler?
 
@@ -235,7 +275,7 @@ Depending on the circumstances, simply pick the one that suits your game logic b
 
 [source, as3]
 ----
-var animID:uint = juggler.add(tween);
+var animID:uint = Starling.juggler.add(tween);
 
 Starling.juggler.remove(tween); // <1>
 Starling.juggler.removeTweens(ball); // <2>
@@ -285,7 +325,7 @@ juggler.tween(msgBox, 0.5, {
 ----
 
 This will create a tween for the `msgBox` object with a duration of 0.5 seconds, animating both the `x` and `rotation` properties.
-As you can see, the `{}`-parameter is used to list all the properties you want to animate, as well as the properties of the Tween itself.
+As you can see, the `{}` parameter is used to list all the properties you want to animate, as well as the properties of the Tween itself.
 A huge time-saver!
 
 === Delayed Calls
@@ -298,7 +338,7 @@ The last time we saw him, he had just lost all his health points and was about t
 But wait: don't call that method immediately -- that would end the game too abruptly.
 Instead, call it with a delay of, say, two seconds (time enough for the player to realize the drama that is unfolding).
 
-To implement that delay, you could use a native _Timer_ or the `setTimeout`-method.
+To implement that delay, you could use a native _Timer_ or the `setTimeout` method.
 However, you can also use the juggler, and that has a huge advantage: you remain in full control.
 
 It becomes obvious when you imagine that the player hits the "Pause" button right now, before those two seconds have passed.

@@ -160,10 +160,10 @@ NOTE: Let me emphasize: the _AssetManager_ does all this for you, so that's the 
 
 Another area where a context loss is especially nasty: render textures.
 Just like other textures, they will lose all their contents -- but there's no easy way to restore them.
-After all, their contents is the result of any number of dynamic draw operations.
+After all, their content is the result of any number of dynamic draw operations.
 
 If the _RenderTexture_ is just used for eye candy (say, footprints in the snow), you might be able to just live with it getting cleared.
-If its contents is crucial, on the other hand, you need a solution for this problem.
+If its content is crucial, on the other hand, you need a solution for this problem.
 
 There's no way around it: you will need to manually redraw the texture's complete contents.
 Again, the `onRestore` callback could come to the rescue:

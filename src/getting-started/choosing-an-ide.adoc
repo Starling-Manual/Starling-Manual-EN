@@ -7,9 +7,12 @@ That will make debugging, refactoring and deployment much easier.
 Thankfully, there are several to choose from.
 Let's look at all the candidates!
 
+IMPORTANT: The prices specified below were effective in April 2017.
+Please check the product sites for the very latest prices and plans.
+
 === Adobe Flash Builder
 
-Previously called _Flex Builder_, that's the IDE created by Adobe.
+_Flash Builder_ is the official IDE from Adobe; you might also know it under its former name _Flex Builder_.
 You can either purchase it as a standalone version (in a standard and premium edition) or get it as part of a _Creative Cloud_ subscription.
 
 Built upon _Eclipse_, it is a very powerful piece of software, supporting all the features you'd expect, like mobile debugging and refactoring.
@@ -24,8 +27,8 @@ Don't get me wrong: it has a great set of features, and you will get stuff done 
 But you will have to live with occasional crashes, and updating the AIR SDK is a chore.
 
 [horizontal]
-Platforms:: Windows, macOS
-Price:: USD 249 (Standard Edition), USD 699 (Premium Edition)
+Platforms:: Windows, macOS.
+Price:: USD 249 (Standard Edition), USD 699 (Premium Edition).
 
 image::flash-builder.png["Adobe Flash Builder."]
 
@@ -48,8 +51,8 @@ The only caveat might be that _JetBrains_ recently switched to a subscription ba
 There's also a free community edition of IDEA, but unfortunately it doesn't include the _Flash/Flex Support_ plug-in.
 
 [horizontal]
-Platforms:: Windows, macOS
-Price:: USD 499 (first year), USD 399 (second year), USD 299 (third year onwards)
+Platforms:: Windows, macOS.
+Price:: For individuals: USD 149 (first year), USD 119 (second year), USD 89 (third year onwards). Business licenses are more expensive (USD 499/399/299 per year).
 
 TIP: The subscription model contains a so-called "perpetual fallback license", which means that after 12 months, you'll be able to keep a version of IDEA even if you cancel the subscription.
 Personally, I think this mitigates the downsides of the subscription model.
@@ -65,8 +68,8 @@ Since I'm primarily using macOS, I don't have very much first-hand experience wi
 Some people are even using it on the Mac via a virtual machine (like _Parallels_).
 
 [horizontal]
-Platforms:: Windows only
-Price:: free and open source
+Platforms:: Windows only.
+Price:: Free and open source.
 
 image::flashdevelop.png["FlashDevelop"]
 
@@ -86,8 +89,8 @@ TIP: There is even a free edition available, which is a great way to get started
 Contrary to what the product page suggests, you can also use it for mobile AIR development.
 
 [horizontal]
-Platforms:: Windows, macOS
-Price:: between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
+Platforms:: Windows, macOS.
+Price:: Between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
 
 image::powerflasher-fdt.png["Powerflasher FDT"]
 
@@ -104,8 +107,8 @@ Being brand-new, it's still a little rough around the edges, but (knowing Josh) 
 Definitely keep an eye out for this one!
 
 [horizontal]
-Platforms:: Windows, macOS
-Price:: free and open source
+Platforms:: Windows, macOS.
+Price:: Free and open source.
 
 image::vscode-nextgenas.png["Visual Studio Code extension: NextGen AS"]
 
@@ -122,5 +125,5 @@ It's a fantastic tool for designers, but it simply wasn't built for writing code
 You'll be much better off using it just for the graphics, and writing the code in one of the other mentioned IDEs.
 
 [horizontal]
-Platforms:: Windows, macOS
-Price:: free for _Creative Cloud_ subscribers
+Platforms:: Windows, macOS.
+Price:: Starting at USD 19.99 / month (for a "Single App" Creative Cloud subscription).
