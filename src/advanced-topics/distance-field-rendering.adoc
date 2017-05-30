@@ -127,7 +127,7 @@ I hope that the offerings will improve in the future.
 TIP: As for _Hiero_, https://github.com/libgdx/libgdx/wiki/Distance-field-fonts[here] is a very good introduction describing the process.
 Unfortunately, _Hiero_ can't export the XML format that Starling requires; this little https://gist.github.com/tluyben/4984856[perl script] might help, though.
 
-Whatever tool or process you use: at the end, you will have a texture and a `.fnt` file, just as usual.
+Whatever tool or process you use, you will end up with a `.png` texture and a `.fnt` file, just like in this http://tinyurl.com/distance-field-font[sample].
 As a reminder, here's the code to create and register a bitmap font:
 
 [source, as3]
@@ -143,7 +143,7 @@ var xml:XML = XML(new FontXml());
 var font:BitmapFont = new BitmapFont(texture, xml)
 TextField.registerCompositor(font);
 
-var textField:TextField = new TextField(200, 50, "I love Starling");
+var textField:TextField = new TextField(400, 100, "Make it so!");
 textField.format.setTo(font.name, BitmapFont.NATIVE_SIZE);
 addChild(textField);
 ----
