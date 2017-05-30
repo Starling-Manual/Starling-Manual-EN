@@ -30,7 +30,7 @@ But you will have to live with occasional crashes, and updating the AIR SDK is a
 Platforms:: Windows, macOS.
 Price:: USD 249 (Standard Edition), USD 699 (Premium Edition).
 
-image::flash-builder.png["Adobe Flash Builder."]
+image::flash-builder.png["Adobe Flash Builder.", 890, pdfwidth='12cm']
 
 === IntelliJ IDEA
 
@@ -57,7 +57,7 @@ Price:: For individuals: USD 149 (first year), USD 119 (second year), USD 89 (th
 TIP: The subscription model contains a so-called "perpetual fallback license", which means that after 12 months, you'll be able to keep a version of IDEA even if you cancel the subscription.
 Personally, I think this mitigates the downsides of the subscription model.
 
-image::intellij-idea.png["IntelliJ IDEA"]
+image::intellij-idea.png["IntelliJ IDEA", 890, pdfwidth='12cm']
 
 === FlashDevelop
 
@@ -71,7 +71,7 @@ Some people are even using it on the Mac via a virtual machine (like _Parallels_
 Platforms:: Windows only.
 Price:: Free and open source.
 
-image::flashdevelop.png["FlashDevelop"]
+image::flashdevelop.png["FlashDevelop", 890, pdfwidth='12cm']
 
 === PowerFlasher FDT
 
@@ -92,7 +92,7 @@ Contrary to what the product page suggests, you can also use it for mobile AIR d
 Platforms:: Windows, macOS.
 Price:: Between USD 25 and USD 55 per month (depending on contract length). Students and teachers may apply for special terms.
 
-image::powerflasher-fdt.png["Powerflasher FDT"]
+image::powerflasher-fdt.png["Powerflasher FDT", 890, pdfwidth='12cm']
 
 === Visual Studio Code
 
@@ -110,7 +110,7 @@ Definitely keep an eye out for this one!
 Platforms:: Windows, macOS.
 Price:: Free and open source.
 
-image::vscode-nextgenas.png["Visual Studio Code extension: NextGen AS"]
+image::vscode-nextgenas.png["Visual Studio Code extension: NextGen AS", 890, pdfwidth='12cm']
 
 === Adobe Animate
 
