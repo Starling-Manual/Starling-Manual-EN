@@ -29,18 +29,23 @@ At the time of its introduction, _AIR_ was part of a trend summarized under the 
 There was a fierce competition between Adobe's _AIR_ and Microsoft's _Silverlight_ (as well as Sun's _JavaFX_).
 Fast forward to the present day, though, and it's apparent that the tides have turned.
 The winner is clearly _HTML5/JavaScript_, which is now the most popular technology stack when building applications with web technologies.
-Even Adobe followed the trend and is adding more and more _HTML5_ support to its products.
+
+I won't sugarcoat it: the _Flash Plugin_ is long past its peak -- especially since http://tinyurl.com/flash-eol[Adobe's announcement] that they will stop supporting it after 2020.
+All popular browsers will probably remove the plugin altogether at the same time.
+
+For this reason, _Flash_ is not an option any longer if you plan on targeting the browser.
+In such a case, there's no alternative to _HTML5/JavaSript_ -- be it directly or via a cross-compiling technology.
+
+Make no mistake, though: that's the _Flash plugin_ we're talking about here, not _AIR_.
+_AIR_ is still seeing solid commitment from Adobe's side, with regular releases and major feature updates throughout each year.
+Granted, it may no longer be the "cool kid" in town, but it's still an extremely attractive platform to build software with:
+
+* Compared to the fragmented world of _HTML5_, where trending libraries change faster than Lady Gaga's costumes, it is very mature and easy to use.
+* It comes with an extensive standard library that provides all the tools you need for day-to-day development.
+* Especially combined with _Starling_ and _Feathers_, it provides one of the smoothest paths for true cross-platform development (targeting all major desktop and mobile platforms with a single code-base).
+
+Talking about _Starling_ ... how does it fit into this picture?
 
 TIP: When it comes to software development, don't fall into the trap of blindly following the masses.
 For every problem, there are multiple solutions; some of them better suited than others.
 Pick the tool you are most comfortable with; a tool that gets out of your way and lets you focus on the software you want to create.
-
-Even though it might be no longer the "cool kid" in town, the __AIR/Flash-__platform is still an extremely attractive platform to build software with:
-
-* Compared to the fragmented world of _HTML5_, where trending libraries change faster than Lady Gaga's costumes, it is very mature and easy to use.
-* It comes with an extensive standard library that provides all the tools you need for day-to-day development.
-* The Flash plug-in, while clearly on the decline for general websites, is still the standard for browser gaming.
-  The majority of games on _Facebook_, for example, are still built with Flash.
-* Especially combined with _Starling_ and _Feathers_, it provides one of the smoothest paths for true cross-platform development (targeting all major desktop and mobile platforms with a single code-base).
-
-Talking about _Starling_ ... how does it fit into this picture?
