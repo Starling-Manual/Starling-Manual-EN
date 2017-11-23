@@ -7,7 +7,7 @@ Thus, for best results, one has to embed the font in all the sizes used within t
 
 _Distance Field Rendering_ solves this issue: it allows bitmap fonts and other single-color shapes to be drawn without jagged edges, even at high magnifications.
 The technique was first introduced in a http://tinyurl.com/AlphaTestedMagnification[SIGGRAPH paper] by Valve Software.
-Starling contains a _MeshStyle_ that adds this feature to Starling.
+To support this feature, Starling contains a special _MeshStyle_ implementation.
 
 To understand how it works, I will start by showing you how to use it on a single image.
 This could e.g. be an icon you want to use throughout your application.
