@@ -105,37 +105,46 @@ Pretty cool, huh?
 NOTE: The only limitation: you cannot combine two modes, e.g. to have both outline and drop shadow.
 You can still resort back to fragment filters for that, though.
 
-=== Distance Field Fonts
+=== Rendering Text
 
-The characteristics of distance field rendering makes it perfect for text.
+The characteristics of distance field rendering make it perfect for text.
 Good news: Starling's standard bitmap font class works really well with the distance field style.
-It's just a little cumbersome to create the actual font texture, I'm afraid.
+By now, there are even great tools for creating suitable font textures.
 
 Remember, a bitmap font consists of an atlas-texture that contains all the glyphs and an XML file describing the attributes of each glyph.
 You can't simply use _field agent_ to convert the texture in a post-processing step (at least not easily), since each glyph requires some padding around it to make up for the _spread_.
-
 Therefore, it's best to use a bitmap font tool that supports distance field textures natively.
-Here are some possible candidates:
 
-* http://kvazars.com/littera/[Littera] -- a free online bitmap font generator.
-* http://github.com/libgdx/libgdx/wiki/Hiero[Hiero] -- a cross platform tool.
-* http://www.angelcode.com/products/bmfont/[BMFont] -- Windows-only, from AngelCode.
+Some of the GUI-tools I described in the <<Bitmap Fonts>> chapter can be configured to create distance field output.
+However, to be blunt, none of them does that job particularly well.
+If you are not afraid of some command line magic, I recommend another one instead.
 
-Personally, I achieved the best results with _Hiero_, although its user interface isn't exactly a joy to work with.
-I hope that the offerings will improve in the future.
+==== msdf-bmfont-xml
 
-TIP: As for _Hiero_, https://github.com/libgdx/libgdx/wiki/Distance-field-fonts[here] is a very good introduction describing the process.
-Unfortunately, _Hiero_ can't export the XML format that Starling requires; this little https://gist.github.com/tluyben/4984856[perl script] might help, though.
+_Msdf-bmfont-xml_ runs on both _Windows_ and _macOS_ (refer to its https://github.com/soimy/msdf-bmfont-xml[GitHub page] for installation instructions).
+The quality of the output is phenomenal, and it even supports an advanced type of distance field texture -- we'll look at that shortly.
 
-Whatever tool or process you use, you will end up with a `.png` texture and a `.fnt` file, just like in this http://tinyurl.com/distance-field-font[sample].
-As a reminder, here's the code to create and register a bitmap font:
+For now, let's start with the basics: let's create a distance field font for, say, `Arial.ttf`:
+
+[source, bash]
+----
+msdf-bmfont -o arial.png -t sdf --smart-size Arial.ttf
+----
+
+* `-o arial.png` determines the filename for the font texture.
+* `-t sdf` indicates that we want to create a _single-channel_ distance field font. All distance field textures we discussed so far were single channel textures.
+* `--smart-size` will make sure the texture uses the smallest possible size.
+
+This command will create the familiar pair of `png` and `fnt` files that you can load in your app.
+What's more, it adds an additional data element to the `fnt` file that contains all relevant distance field settings.
+As a result, Starling is able to set everything up for you automatically.
 
 [source, as3]
 ----
-[Embed(source="font.fnt", mimeType="application/octet-stream")]
+[Embed(source="arial.fnt", mimeType="application/octet-stream")]
 public static const FontXml:Class;
 
-[Embed(source="font.png")]
+[Embed(source="arial.png")]
 public static const FontTexture:Class;
 
 var texture:Texture = Texture.fromEmbeddedAsset(FontTexture);
@@ -143,22 +152,35 @@ var xml:XML = XML(new FontXml());
 var font:BitmapFont = new BitmapFont(texture, xml)
 TextField.registerCompositor(font);
 
-var textField:TextField = new TextField(400, 100, "Make it so!");
-textField.format.setTo(font.name, BitmapFont.NATIVE_SIZE);
+var textField:TextField = new TextField(400, 100, "May the font be with you!");
+textField.format.setTo(font.name, 32);
 addChild(textField);
 ----
 
-Up until this point, there's nothing new.
-To switch to distance field rendering, we attach the appropriate style right to the TextField.
+That's right, there is no special set-up code to write -- you create font and TextField just like you always do!
+Behind the scenes, Starling will automatically set up a _DistanceFieldStyle_ instance with the correct settings.
 
-[source, as3]
+==== Multi-Channel Distance Field Textures
+
+A _multi-channel_ distance field texture uses all channels of an RGB-texture to encode the distance information.
+This leads to an even higher rendering quality.
+
+As mentioned above, _msdf-bmfont-xml_ supports this distance field type -- in fact, it even defaults to it.
+Please run the command-line tool again, but omit the `-t sdf` parameter.
+
+[source, bash]
 ----
-var style:DistanceFieldStyle = new DistanceFieldStyle();
-textField.style = style;
+msdf-bmfont -o arial.png --smart-size Arial.ttf
 ----
 
+This time, you will end up with a _multi-channel_ distance field texture.
+Here's what it looks like:
+
+.A multi-channel distance field font.
+image::multi-channel-distance-field-font.png[Multi-channel distance field font, pdfwidth='5cm']
+
+Again, Starling will recognize the texture and will render in "multi-channel" style automatically.
 The reward for all this hard work: such a font can now be used at almost any scale, and with all the flexible render modes I showed above.
 
-.A bitmap font using distance fields looks great at any scale.
+.A bitmap font using distance field fonts looks great at any scale.
 image::distance-field-scale.png[Scaled TextField with a Bitmap Font]
-
