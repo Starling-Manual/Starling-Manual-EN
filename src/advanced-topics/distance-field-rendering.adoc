@@ -150,7 +150,7 @@ public static const FontTexture:Class;
 var texture:Texture = Texture.fromEmbeddedAsset(FontTexture);
 var xml:XML = XML(new FontXml());
 var font:BitmapFont = new BitmapFont(texture, xml)
-TextField.registerCompositor(font);
+TextField.registerCompositor(font, font.name);
 
 var textField:TextField = new TextField(400, 100, "May the font be with you!");
 textField.format.setTo(font.name, 32);
