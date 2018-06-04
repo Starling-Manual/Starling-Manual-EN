@@ -446,7 +446,7 @@ Be sure to check out its API reference to see what's possible!
 
 ==== More Complex Movies
 
-A downside of this animation technique has to be mentioned, though: you will run out of texture memory if your animations are either very long or if the individual frames are very big.
+A downside of this animation technique has to be mentioned, though: you will quickly run out of texture memory if your animations are either very long or if the individual frames are very big.
 If your animations take up several big texture atlases, they might not fit into memory.
 
 For these kinds of animations, you need to switch to a more elaborate solution: skeletal animation.
@@ -460,3 +460,17 @@ All of the following work really well with Starling:
 * https://github.com/threerings/flump[Flump]
 * http://dragonbones.github.io/[Dragon Bones]
 * http://gafmedia.com[Generic Animation Format]
+
+While _Spine_ is a standalone application (built specifically with game development in mind), the others are all based on _Adobe Animate_ (either via plug-in or by parsing SWF data).
+
+Apropos _Adobe Animate_: a recent update actually added a brand-new export option.
+To use it, right-click on a symbol in the _Library_ panel and choose "Generate Texture Atlas".
+Don't be fooled by the misleading name: this format has nothing to do with Starling's standard texture atlases.
+It's a completely different format that efficiently describes animations.
+
+Best of all, loading these animations in Starling is really easy if you add https://wiki.starling-framework.org/extensions/adobe-animate[this little extension] to your project.
+Once the data is loaded (which is taken care of by a custom _AssetManager_), you can instantiate _Animation_ objects that work just like the _MovieClip_ class we just encountered.
+_Creative Cloud_ users should definitely give this a try!
+
+.The _Adobe Animate_ extension comes with this cute sample animation by Chris Georgenes.
+image::ninja-girl-frames.png[Ninja Girl, pdfwidth='100%']

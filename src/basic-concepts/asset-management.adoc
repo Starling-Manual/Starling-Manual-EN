@@ -37,6 +37,16 @@ That's very useful for debugging, or if you don't understand why a certain asset
 For that reason, the latest Starling versions have it enabled per default.
 ====
 
+=== AssetManager versions ===
+
+Starling 2.4 features a new, much enhanced AssetManager.
+All the code examples that follow were written with this new version in mind.
+
+The new AssetManager class can be found in the `starling.assets` package.
+For compatibility reasons, the old version is still available at its previous location (in `starling.utils`), but it's now marked as deprecated.
+Upgrading to the new version should be really painless -- the changes in the public API were kept at a minimum.
+In exchange, you can profit from the new version's much higher flexibility.
+
 === Enqueuing the Assets
 
 The first step is to enqueue all the assets you want to use.
@@ -60,7 +70,7 @@ assets.enqueue(appDir.resolvePath("textures"));
 ----
 
 To load a **texture atlas**, just enqueue both its XML file and the corresponding texture.
-Just make sure that the `imagePath` attribute in the XML file contains the correct filename, because that's what the AssetManager will look for when it creates the atlas later.
+Make sure that the `imagePath` attribute in the XML file contains the correct filename, because that's what the AssetManager will look for when it creates the atlas later.
 
 [source, as3]
 ----
@@ -133,8 +143,8 @@ The asset manager supports this kind of configuration, too:
 [source, as3]
 ----
 var assets:AssetManager = new AssetManager();
-assets.textureFormat = Context3DTextureFormat.BGRA_PACKED;
-assets.scaleFactor = 2;
+assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
+assets.textureOptions.scale = 2;
 assets.enqueue(EmbeddedAssets);
 ----
 
@@ -144,10 +154,10 @@ Actually, no: you just need to enqueue them in several steps, assigning the righ
 
 [source, as3]
 ----
-assets.scaleFactor = 1;
+assets.textureOptions.scaleFactor = 1;
 assets.enqueue(appDir.resolvePath("textures/1x"));
 
-assets.scaleFactor = 2;
+assets.textureOptions.scaleFactor = 2;
 assets.enqueue(appDir.resolvePath("textures/2x"));
 ----
 
@@ -157,42 +167,37 @@ This will make the textures from the `1x` and `2x` folders use scale factors of 
 
 Now that the assets are enqueued, you can load all of them at once.
 Depending on the number and size of assets you are loading, this can take a while.
-For that reason, it probably makes sense to show some kind of progress bar or loading indicator to your users.
+
+The `loadQueue` method accepts up to three different parameters, with separate callbacks for completion, error handling and progress.
+Only the first parameter (`onComplete`) is obligatory.
 
 [source, as3]
 ----
-assets.loadQueue(function(ratio:Number):void
-{
-    trace("Loading assets, progress:", ratio);
+assets.loadQueue(onComplete, onError, onProgress);
 
-    // when the ratio equals '1', we are finished.
-    if (ratio == 1.0)
-        startGame();
-});
+function onComplete():void { trace("done!"); } // <1>
+function onError(error:String):void { trace("error:", error); } // <2>
+function onProgress(ratio:Number):void { trace("progress:", ratio); } // <3>
 ----
+<1> You can always rely on `onComplete` to be called once at the very end.
+<2> `onError` may be executed multiple times (once for every asset that can't be loaded).
+<3> Use `onProgress` if you want to show some kind of progress bar or loading indicator.
 
-Note that the `startGame` method is something you have to implement yourself; that's where you could hide the loading screen and start the actual game.
+[NOTE]
+====
+That's the one part where you need to be careful when migrating to the new AssetManager.
+Previously, there was just a single callback parameter in the `loadQueue` method that signaled both progress and completion.
+Make sure to update your call so that it uses the new separate callbacks.
+====
 
-With an enabled `verbose` property, you'll see the names with which the assets can be accessed:
+With an enabled `verbose` property, you'll see the names with which the assets can be accessed.
 
 ----
 [AssetManager] Adding sound 'explosion'
 [AssetManager] Adding texture 'bird'
 [AssetManager] Adding texture 'atlas'
 [AssetManager] Adding texture atlas 'atlas'
-[AssetManager] Removing texture 'atlas'
 ----
-
-[NOTE]
-====
-Did you notice?
-In the last line, right after creating the texture atlas, the `atlas` texture is actually removed.
-Why is that?
-
-Once the atlas is created, you are no longer interested in the atlas-texture, only in the subtextures it contains.
-Thus, the actual atlas-texture is removed, freeing up the slot for another texture.
-The same happens for bitmap fonts.
-====
 
 === Accessing the Assets
 
@@ -211,11 +216,16 @@ var explosion:SoundChannel = assets.playSound("explosion"); // <3>
 
 If you enqueued a bitmap font along the way, it will already be registered and ready to use.
 
-[TIP]
+[NOTE]
 ====
 In my games, I typically store a reference to the asset manager at my root class, accessible through a `static` property.
 That makes it super easy to access my assets from anywhere in the game, simply by calling `Game.assets.get...()` (assuming the root class is called `Game`).
 ====
 
-// TODO: Restoring the Assets
+[TIP]
+====
+The Starling Wiki contains two extensions for the AssetManager that are worth checking out:
 
+* http://wiki.starling-framework.org/extensions/zipped-assets[Zipped Assets]: Unzip compressed assets on the fly. Useful e.g. for big JSON or XML files.
+* http://wiki.starling-framework.org/extensions/asset-caching[Asset Caching]: Caches remote assets locally. Subsequent loads will be executed from the disk.
+====

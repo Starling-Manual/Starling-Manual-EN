@@ -228,11 +228,11 @@ The _AssetManager_ can be configured to select a suitable color depth on a per-f
 var assets:AssetManager = new AssetManager();
 
 // enqueue 16 bit textures
-assets.textureFormat = Context3DTextureFormat.BGRA_PACKED;
+assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
 assets.enqueue(/* ... */);
 
 // enqueue 32 bit textures
-assets.textureFormat = Context3DTextureFormat.BGRA;
+assets.textureOptions.format = Context3DTextureFormat.BGRA;
 assets.enqueue(/* ... */);
 
 // now start the loading process
