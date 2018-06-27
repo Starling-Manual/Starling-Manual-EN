@@ -109,7 +109,7 @@ var texture:Texture = Texture.fromEmbeddedAsset(FontTexture);
 var xml:XML = XML(new FontXml());
 var font:BitmapFont = new BitmapFont(texture, xml); // <1>
 
-TextField.registerCompositor(font); // <2>
+TextField.registerCompositor(font, font.name); // <2>
 ----
 <1> Create an instance of the _BitmapFont_ class.
 <2> Register the font at the _TextField_ class.
