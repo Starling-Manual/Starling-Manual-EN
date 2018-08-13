@@ -214,6 +214,15 @@ The language filters are written in is called AGAL, an assembly language.
 (Yes, you read right! This is as low-level as it gets.)
 Thankfully, however, typical AGAL programs are very short, so it's not as bad as it sounds.
 
+[TIP]
+====
+A quick tip: be sure to always enable `starling.enableErrorChecking` while writing AGAL code.
+That way, the AGAL compiler will immediately fail when there's a problem with the code (and print useful debug information), instead of silently ignoring any problems.
+Trust me: this will save you from hours of frustration and head-scratching.
+
+Just be sure to disable the property again for release builds, as it has a negative impact on performance.
+====
+
 Good news: we only need to write a fragment shader.
 The vertex shader is the same for most fragment filters, so Starling provides a standard implementation for that.
 Let's look at the code:
