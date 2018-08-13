@@ -154,10 +154,10 @@ Actually, no: you just need to enqueue them in several steps, assigning the righ
 
 [source, as3]
 ----
-assets.textureOptions.scaleFactor = 1;
+assets.textureOptions.scale = 1;
 assets.enqueue(appDir.resolvePath("textures/1x"));
 
-assets.textureOptions.scaleFactor = 2;
+assets.textureOptions.scale = 2;
 assets.enqueue(appDir.resolvePath("textures/2x"));
 ----
 

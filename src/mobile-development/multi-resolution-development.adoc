@@ -150,7 +150,7 @@ var scale:Number = starling.contentScaleFactor; // <1>
 var texturePath:String = "textures/" + scale + "x"; // <2>
 var appDir:File = File.applicationDirectory;
 
-assetManager.scaleFactor = scale; // <3>
+assetManager.textureOptions.scale = scale; // <3>
 assetManager.enqueue(appDir.resolvePath(texturePath));
 assetManager.loadQueue(...);
 
@@ -567,7 +567,7 @@ var scale:Number = screen.assetScale;
 var texturePath:String = "textures/" + scale + "x";
 var appDir:File = File.applicationDirectory;
 
-assetManager.scaleFactor = scale;
+assetManager.textureOptions.scale = scale;
 assetManager.enqueue(appDir.resolvePath(texturePath));
 assetManager.loadQueue(...);
 ----
