@@ -5,7 +5,7 @@ Daniel Sperl <http://www.gamua.com[Gamua]>
 :sectnums:
 :sectanchors:
 :icons: font
-:source-highlighter: pygments
+:source-highlighter: rouge
 :imagesdir: ../img
 :experimental:
 :autofit-option:
