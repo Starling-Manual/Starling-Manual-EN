@@ -6,12 +6,17 @@ Let's see how to set everything up so that we can finally get started with our f
 === AIR SDK
 
 If you have picked and installed your IDE, the next step is to download the latest version of the _AIR SDK_.
-Adobe releases a new stable version once every three months, so be sure to keep up to date!
 Each new release typically contains several important bug-fixes, which is especially important to maintain compatibility with the latest mobile operating systems.
-You will also constantly see the team experimenting with new features, and I'm trying hard to keep up with that pace in Starling.
 
-The latest release can always be found here:
-https://www.adobe.com/devnet/air/air-sdk-download.html[Download Adobe AIR SDK]
+At the time of this writing (early 2020), the version of the SDK you need to use depends on the platform you want to deploy to.
+
+* For iOS and macOS, it's recommended to use AIR 32, which is the last release from Adobe (and will see security updates until the end of the year).
+  It can be found here: https://www.adobe.com/devnet/air/air-sdk-download.html[Download AIR SDK from Adobe]
+* For Android and Windows, you can use the newer AIR 33 (or higher), which is being developed by _Harman_.
+  Find it here: https://airsdk.harman.com/download[Download AIR SDK from Harman]
+
+By the end of the year, AIR 32 should become obsolete and you will be able to use Harman's releases across the board.
+I recommend you keep an eye on the latest release notes to find out which route to take!
 
 NOTE: Starling 2 requires at least AIR 19.
 

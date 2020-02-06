@@ -97,20 +97,19 @@ image::powerflasher-fdt.png["Powerflasher FDT", 890, pdfwidth='12cm']
 === Visual Studio Code
 
 _Visual Studio Code_ is a lightweight but powerful source code editor that's available for all major desktop operating systems.
-It does not provide any ActionScript support out of the box, but there is an extension in the works that might make it a viable (and free!) alternative to the other IDEs soon.
+While it does not support ActionScript out of the box, there is an extension that makes it a viable (and free!) alternative to the other IDEs.
 
-The https://nextgenactionscript.com/vscode/[NextGen ActionScript] extension is being developed by Josh Tynjala, who has also brought you the fantastic _Feathers_ user interface components.
-It turns Visual Studio Code into a fully-fledged ActionScript development environment, including code intelligence features like auto-completion, automatic class imports, etc.
-At the time of this writing, Josh just added support for debugging SWF files in AIR or Flash Player -- the deal-breaker for any serious development environment.
+The https://as3mxml.com[ActionScript & MXML] extension is being developed by Josh Tynjala, who has also brought you the fantastic _Feathers_ user interface components.
+It turns Visual Studio Code into a full-fledged ActionScript development environment, including code intelligence features like auto-completion, automatic class imports, comfortable debugging, etc.
 
-Being brand-new, it's still a little rough around the edges, but (knowing Josh) I have no doubt that this extension is going to become rock-solid in the future.
-Definitely keep an eye out for this one!
+You'll be a little bit closer to the metal than with the other IDEs when it comes to configuring your build process, but that's not a bad thing!
+I highly recommend giving it a try.
 
 [horizontal]
-Platforms:: Windows, macOS.
+Platforms:: Windows, macOS and even Linux.
 Price:: Free and open source.
 
-image::vscode-nextgenas.png["Visual Studio Code extension: NextGen AS", 890, pdfwidth='12cm']
+image::vscode-nextgenas.png["Visual Studio Code extension", 890, pdfwidth='12cm']
 
 === Adobe Animate
 

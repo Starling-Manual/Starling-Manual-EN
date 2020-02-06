@@ -69,12 +69,13 @@ image::filter-colormatrix.png[ColorMatrixFilter, 600, scaledwidth='600px', pdfwi
 
 ==== DropShadow- and GlowFilter
 
-These two filters draw the original object in the front and add a blurred and tinted variant behind it.
+These two filters draw a shadow or glow (i.e. the result of a tinted BlurFilter) behind or inside the original object.
 
 * That also makes them rather expensive, because they add an additional render pass to what's required by a pure _BlurFilter_.
+* Draw just the shadow or glow by setting `knockout` to `true`.
 
 ._DropShadow-_ and _GlowFilter_ in action.
-image::filter-dropshadow-with-glow.png[DropShadow and Glow filter, 300, scaledwidth='300px', pdfwidth='6cm']
+image::filter-dropshadow-with-glow.png[DropShadow and Glow filter, 600, scaledwidth='600px', pdfwidth='12cm']
 
 ==== DisplacementMapFilter
 

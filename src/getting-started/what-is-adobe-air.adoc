@@ -33,9 +33,12 @@ The winner is clearly _HTML5/JavaScript_, which is now the most popular technolo
 I won't sugarcoat it: the _Flash Plugin_ is long past its peak -- especially since http://tinyurl.com/flash-eol[Adobe's announcement] that they will stop supporting it after 2020.
 All popular browsers will probably remove the plugin altogether at the same time.
 
-Make no mistake, though: that's the _Flash plugin_ we're talking about here, not _AIR_.
-_AIR_ is still seeing solid commitment from Adobe's side, with regular releases and major feature updates throughout each year.
-Granted, it may no longer be the "cool kid" in town, but it's still an extremely attractive platform to build software with:
+Make no mistake, though: that's the _Flash plugin_ we're talking about here.
+_AIR_ is still seeing solid commitment, with regular releases and major feature updates throughout each year.
+Mind you: as of June 2019, that commitment is no longer coming from Adobe -- but from https://services.harman.com/partners/adobe[Harman].
+They have taken on the platform support and feature development of _AIR_ and are providing new versions on a commercial basis (with a free version available for smaller companies).
+
+Granted, it may no longer be the "cool kid" in town, but _AIR_ is still an extremely attractive platform to build software with:
 
 * Compared to the fragmented world of _HTML5_, where trending libraries change faster than Lady Gaga's costumes, it is very mature and easy to use.
 * It comes with an extensive standard library that provides all the tools you need for day-to-day development.
