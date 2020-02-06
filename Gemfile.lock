@@ -59,7 +59,7 @@ GEM
     public_suffix (3.1.1)
     rouge (3.8.0)
     ruby-rc4 (0.1.5)
-    rubyzip (1.2.3)
+    rubyzip (2.0.0)
     safe_yaml (1.0.5)
     thread_safe (0.3.6)
     treetop (1.5.3)
