@@ -7,27 +7,46 @@ Let's see how to set everything up so that we can finally get started with our f
 
 If you have picked and installed your IDE, the next step is to download the latest version of the _AIR SDK_.
 Each new release typically contains several important bug-fixes, which is especially important to maintain compatibility with the latest mobile operating systems.
+Thus, it's recommended to always use the very latest version, and to keep an eye on the latest release notes.
 
-At the time of this writing (early 2020), the version of the SDK you need to use depends on the platform you want to deploy to.
+Beginning with version 33, AIR is being developed and supported by _Harman_.
+You can find it here: https://airsdk.harman.com/download[Download AIR SDK from Harman].
 
-* For iOS and macOS, it's recommended to use AIR 32, which is the last release from Adobe (and will see security updates until the end of the year).
-  It can be found here: https://www.adobe.com/devnet/air/air-sdk-download.html[Download AIR SDK from Adobe]
-* For Android and Windows, you can use the newer AIR 33 (or higher), which is being developed by _Harman_.
-  Find it here: https://airsdk.harman.com/download[Download AIR SDK from Harman]
+[NOTE]
+====
+If you don't want to use Harman's AIR release for some reason (e.g. licensing issues), it's still possible to use _AIR 32_ from Adobe – at least when targeting the Desktop.
+That is, if you have a copy lying around, because Adobe doesn't provide it any longer.
+Also note that this version received its final security update in late 2020.
+====
 
-By the end of the year, AIR 32 should become obsolete and you will be able to use Harman's releases across the board.
-I recommend you keep an eye on the latest release notes to find out which route to take!
+.Fixing an Issue on macOS
+****
+If you're developing on _macOS Catalina_ or later, you might be confronted with an error like the following when you compile your project:
 
-NOTE: Starling 2 requires at least AIR 19.
+* "[A binary] cannot be opened because the Developer cannot be verified."
+* "macOS cannot verify that this app is free from malware."
+* "Adobe AIR.framework can't be opened because Apple cannot check it for malicious software."
+
+The latest macOS versions require all executables to be "notarized" by Apple; however, the AIR SDK still contains some executables that don't satisfy that requirement.
+Hopefully, this is soon fixed by _Harman_; in the meantime, there is an easy workaround.
+
+Open up the _Terminal_ and navigate to the parent folder of your AIR SDK.
+Then execute the following command:
+
+    sudo xattr -r -d com.apple.quarantine [air_sdk_folder]
+
+Now enter your admin passwort when you're prompted, and the compilation issues should be gone.
+****
 
 === Flash Player Projector
 
-If your project also aims to run in the _Flash Player_, I recommend you get the standalone version of it, called _Projector_ (available as _Debug_ and _Release_ versions).
-The advantage of the projector is a much easier debugging experience.
-Yes, you could also debug via the browser (after installing the debug-version of the plug-in) -- but personally, I find that extremely cumbersome.
-The projector starts up much faster, and you don't need to configure any HTML files to get it going.
+After the "death" of _Flash Player_, you technically don't need the _Flash Player Projector_ any longer.
+That's a standalone version of the plugin that doesn't require a browser to run Flash content.
 
-This page contains a list of all Flash Player versions suitable for developers. Look for the "projector content debugger":
+However, it's still a great way to play around with ActionScript and Starling without the hassle of setting up a complete AIR project.
+Furthermore, you can use the projector to view legacy Flash content ("SWF movies", as they called them), so I recommend you grab a copy before Adobe removes it altogether!
+
+Downloads for all operating systems are available here (look for the "projector content debugger"):
 https://www.adobe.com/support/flashplayer/debug_downloads.html[Adobe Flash Player Debug Downloads]
 
 NOTE: The debugger is significantly slower than the standard version.

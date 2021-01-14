@@ -30,11 +30,12 @@ There was a fierce competition between Adobe's _AIR_ and Microsoft's _Silverligh
 Fast forward to the present day, though, and it's apparent that the tides have turned.
 The winner is clearly _HTML5/JavaScript_, which is now the most popular technology stack when building applications with web technologies.
 
-I won't sugarcoat it: the _Flash Plugin_ is long past its peak -- especially since http://tinyurl.com/flash-eol[Adobe's announcement] that they will stop supporting it after 2020.
-All popular browsers will probably remove the plugin altogether at the same time.
+The most prominent victim of this rivalry is the Flash plugin.
+For years, it played a major role in moving the web platform forward; however, it rapidly lost relevance in the 2010s and was officially laid to rest in early 2021.
+It's now difficult to even display legacy Flash content – which is sad for all the great content created by developers over the last decades.
 
 Make no mistake, though: that's the _Flash plugin_ we're talking about here.
-_AIR_ is still seeing solid commitment, with regular releases and major feature updates throughout each year.
+_AIR_ is still seeing solid commitment, with regular releases and feature updates throughout each year.
 Mind you: as of June 2019, that commitment is no longer coming from Adobe -- but from https://services.harman.com/partners/adobe[Harman].
 They have taken on the platform support and feature development of _AIR_ and are providing new versions on a commercial basis (with a free version available for smaller companies).
 
