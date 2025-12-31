@@ -6,10 +6,10 @@ Daniel Sperl <http://www.gamua.com[Gamua]>
 :sectanchors:
 :icons: font
 :source-highlighter: rouge
-:imagesdir: ../img
 :docinfo: shared
 :experimental:
 :autofit-option:
+ifndef::imagesdir[:imagesdir: ../img]
 ifndef::ebook-format[:leveloffset: 1]
 
 // introduction
@@ -83,7 +83,7 @@ Or do you have any questions that haven't been answered yet?
 The Starling community is eager to help you!
 Pay us a visit at the official http://forum.starling-framework.org[Starling Forum].
 
-=== What’s next?
+=== What's next?
 
 With this manual, you now have the complete Starling documentation at your disposal — from the very first steps all the way to advanced techniques and extensions.
 
