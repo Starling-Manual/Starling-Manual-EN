@@ -1,0 +1,86 @@
+=== Fast Tilemaps
+
+Many 2D games contain big maps, like the levels in a platformer or a territory of a real-time strategy title.
+Most of the time, those maps are assembled from lots and lots of small tiles -- rectangular textures that can be seamlessly put next to each other.
+
+.Especially classic 16-bit titles (here: _Zelda_) create fantastic landscapes with tilemaps.
+image::tilemap-zelda.jpg[Zelda Tilemap, pdfwidth='11.75cm']
+
+The traditional approach to implement such a tilemap would be to simply use an _Image_ instance for each tile.
+If you add all tiles to a single _Sprite_, you'll have a handy and easy to use object representing the whole map.
+
+That works well, and it's even the preferred approach for small maps.
+It's straight-forward, flexible, and comfortable to use.
+
+Performance-wise, though, it's not ideal.
+The flexibility of the display list comes at a price; when the number of tiles grows too big, performance will suffer.
+
+However, Starling allows you to side-step the display list.
+You can create a single display object that's composed of all your tiles but is rendered in a single step.
+The class that can pull this off is called _MeshBatch_.
+
+[NOTE]
+====
+In fact, *all* rendering in Starling is done via _MeshBatches_.
+Each frame, when Starling iterates over the display list, it will fill a number of batches.
+The "draw call" count mentioned numerous times in this book -- that's simply the number of batches being rendered.
+
+Being of such importance, you can imagine that a lot of time was spent to optimize the hell out of that class!
+====
+
+When using the _MeshBatch_, think of it as an object similar to a _RenderTexture_.
+You can add ("draw") an almost endless number of other meshes to it (up to 16k quads).
+However, whereas the _RenderTexture_ stores the pixels that are the result of this operation, the _MeshBatch_ stores the actual geometry.
+Thus, a _MeshBatch_ requires only very little memory, and adding additional geometry is much cheaper.
+
+Enough theory: let's look at how to create a big tilemap with the _MeshBatch_ class.
+
+[source, as3]
+----
+const TILE_SIZE:int = 16;
+
+var map:MeshBatch = new MeshBatch(); // <1>
+var tiles:Vector.<Texture> = assets.getTextures("tile_"); // <2>
+var tile:Image = new Image(tiles[0]); // <3>
+var numTiles:int = tiles.length;
+
+for (var x:int=0; x<100; ++x) // <4>
+{
+    for (var y:int=0; y<100; ++y)
+    {
+        tile.texture = tiles[int(Math.random() * numTiles)]; // <5>
+        tile.x = x * TILE_SIZE;
+        tile.y = y * TILE_SIZE;
+        map.addMesh(tile); // <6>
+    }
+}
+
+addChild(map); // <7>
+----
+<1> Instantiate the _MeshBatch_.
+<2> The tile textures _must_ all be taken from the same texture atlas.
+<3> A single _Image_ will act as the blueprint for all tiles.
+<4> We create a tile map of 100×100 tiles.
+<5> In each loop cycle, the image is assigned a random tile texture.
+<6> The image is added to the batch at the given x- and y-coordinates.
+<7> The result: `map` is a single display object to be used just like a regular _Mesh_ or _Image_.
+
+What may be surprising about this code is that a single _Image_ instance (`tile`) is added to the _MeshBatch_ over and over.
+You couldn't do that with a regular container (e.g. a _Sprite_): it can pick up a single image once and only once.
+
+When you add an object to a _MeshBatch_, its geometry and other properties are simply copied over; the object acts only as a blueprint or stamp.
+That's exactly what distinguishes this class.
+
+NOTE: Even after the code has been executed, the `tile` image is not part of the display list.
+
+You probably won't be shocked to hear that this performance benefit comes at a price, and that's a set of rather strict limitations.
+
+* You can only add objects of type _Mesh_ or its subclasses (like _Quad_ and _Image_).
+* All added meshes must use the same texture (read: atlas) and have an identical style.
+* The very first object you add to the batch determines its attributes (texture, smoothing, etc).
+  If you add an incompatible object later, its geometry will be interpreted wrongly; you won't get any exception.
+* You cannot remove individual objects from the batch.
+  However, you can trim it to a certain length, overwrite specific vertex data, or reset the batch altogether.
+
+All in all, the _MeshBatch_ is not the silver bullet for all performance-problems, but it's a great tool for very specific use-cases.
+For example, Starling uses them internally for bitmap fonts.

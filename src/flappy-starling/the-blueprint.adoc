@@ -1,0 +1,41 @@
+== The Blueprint
+ifndef::imagesdir[:imagesdir: ../../img]
+
+_Flappy Bird_ is a phenomenon.
+Developed over the course of just a few days by Vietnamese artist and programmer Dong Nguyen, it was released in 2013, sharing the fate of countless other games of its kind: nobody noticed it.
+
+That changed in early 2014, however.
+For reasons that remain a mystery, it suddenly skyrocketed up the charts!
+At that time, the game was so successful that it earned about USD 50,000 per day from its in-app advertisements.
+The dream of every game developer come true, right?
+
+At the height of this success, though, Dong pulled the game from the app stores.
+He said that he had a bad conscience about getting people addicted to his game.
+It only added to the hype, of course, and since then, countless clones of the game have appeared on the stores.
+
+Well, it's time we made our own!
+
+=== Setup and Gameplay
+
+In all honesty: I admire this game.
+It demonstrates that it's often the most simple ideas that provide the most fun.
+Yes, it might be argued that it's not the most original game.
+Without question, though, it is definitely challenging and addictive!
+
+If you haven't played it before, here's what _Flappy Bird_ is about.
+
+* A bird is flying through a side-scrolling landscape that could have been taken right out of Super Mario Bros.
+* Each time you touch the screen, the bird flaps up a little bit, fighting against the constant pull of gravity.
+* The player's job is to make it evade the obstacles that appear every few meters: green pipes that leave only a narrow gap for the bird to pass through.
+* You score a point for every pair of pipes that the bird is passing. When you fail, you restart from the very beginning.
+
+.The Original: Flappy Bird.
+image::flappy-bird.png["Flappy Bird", pdfwidth='5cm']
+
+As simple as this sounds, it's actually damn hard to score just a few points -- and that's what this game is all about: the challenge is to stay focused and concentrated as long as possible, without making an error.
+
+There's nothing else: no growing difficulty curve, no fancy graphics; it's just you and the bird.
+And since each session just takes a few seconds, it's perfect for a mobile game.
+
+Furthermore, it's a game about a bird right?
+That's reason enough to make this the perfect example for our jump into Starling!

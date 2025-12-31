@@ -1,0 +1,65 @@
+=== Runtime Texture Compression
+
+As discussed in previous chapters, the ATF format provides a practical way to reduce the memory consumption of your assets.
+Typically, you create the ATF files during the build process of your game and then load them at runtime.
+What's not so well known is that you can also create compressed textures at runtime -- albeit only on desktop platforms (at the time of this writing).
+
+Most of the time, you will still want to compress your textures beforehand -- simply because it is faster and allows for more control.
+In some situations, on the other hand, this feature can turn out really useful, e.g. when creating textures dynamically from vector art.
+
+Here is a source code sample showing how it's done.
+
+[source, as3]
+----
+var bitmap:Bitmap = getDynamicBitmap();
+var texture:Texture = Texture.fromBitmap(bitmap,
+    false, false, 1, Context3DTextureFormat.COMPRESSED);
+----
+
+Quite simple, right?
+The parameter that's interesting is the last one; for compressed textures, you can choose between the format `COMPRESSED` and `COMPRESSED_ALPHA`.
+As the names suggests, only the latter will include an alpha channel.
+
+TIP: Different to standard ATF textures, you don't necessarily need to make sure the bitmap has side lengths that are powers of two; Starling will take care of this requirement internally.
+
+I couldn't find any information about the actual format that is used for the compression, but it's likely to be either _DXT1_ (no alpha) or _DXT5_ (alpha), since those are available on all desktop computers.
+
+You are probably using the _AssetManager_ to load your textures, right?
+In that case, you can activate texture compression by simply assigning the appropriate format before enqueuing:
+
+[source, as3]
+----
+var assets:AssetManager = new AssetManager();
+
+// enqueue textures to be compressed
+assets.textureOptions.format = Context3DTextureFormat.COMPRESSED_ALPHA;
+assets.enqueue(/* ... */);
+
+// continue with standard format
+assets.textureOptions.format = Context3DTextureFormat.BGRA;
+assets.enqueue(/* ... */);
+----
+
+If you wonder how long the compression takes, fear not: it's definitely within an acceptable range.
+I made some tests with a _MacBook Pro_ from 2015, which compressed a 2048×2048 texture in less than 100 milliseconds.
+Even on a low-end _Windows_ Netbook, the process took only about 300 milliseconds.
+For the occasional dynamic utility texture, that will do!
+
+NOTE: A little annoying might just be the fact that you can't compress the texture asynchronously -- remember, asynchronous texture creation is only available on mobile, so these two features currently rule each other out.
+However, you never know what future updates of the AIR runtime will bring, so it's not unlikely that this situation changes one day.
+
+==== 16 bit Textures
+
+Runtime ATF compression might not be available on mobile, but don't forget that there's an alternative format that will also save quite a bit of memory: `RGBA_PACKED`.
+I mentioned it already in the <<Memory Management>> section.
+
+That format reduces the color depth of your textures to 16 bit, which will obviously cause image quality to suffer.
+However, preprocessing the images with a _dithering_ algorithm helps mitigate this issue.
+The advantage of this format: it is available on all platforms.
+
+[source, as3]
+----
+var bitmap:Bitmap = getDynamicBitmap();
+var texture:Texture = Texture.fromBitmap(bitmap,
+    false, false, 1, Context3DTextureFormat.BGRA_PACKED);
+----

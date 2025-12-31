@@ -1,0 +1,95 @@
+== Dynamic Lighting
+
+The task of this extension is nothing less than providing Starling with a realistic lighting model.
+The results are rather fascinating for a humble 2D engine, if I may say so.
+
+To use it, you first need to add one or more light sources to the display list.
+You can choose between different types of lights.
+
+Ambient lights:: Add a basic illumination to all parts of the mesh, independent of its location or orientation.
+Point lights:: Emit radial light from a single spot, like a candle or light bulb.
+Directional lights:: Emit parallel rays, which is ideal to simulate sunlight.
+
+For example, the following code creates a red point light.
+
+[source, as3]
+----
+var pointLight:LightSource =
+    LightSource.createPointLight(Color.RED);
+
+pointLight.x = 200;
+pointLight.y = 150;
+pointLight.z = -100;
+addChild(pointLight);
+----
+
+Note that light sources inherit from the Sprite3D class, which means that they may be placed in a 3D space (even though the rest of your scene is typically 2D).
+Which parents you are adding them to is entirely up to you; the lights can be anywhere in the display list.
+
+[TIP]
+====
+At development time, it's often useful to have a visual representation of the light.
+To get one, just enable the `showLightBulb` property:
+
+[source, as3]
+----
+pointLight.showLightBulb = true;
+----
+
+You can drag the light symbol around on the screen; hit kbd:[Shift] while moving the mouse to change rotation (useful for directional light) and z-position.
+====
+
+The mechanism that's responsible for calculating the actual illumination is, of course, a _mesh style_.
+Create an instance of the _LightStyle_ class and assign it to an _Image_ (or any other mesh type).
+To configure how exactly the object will appear when hit by light, the style provides a number of properties.
+
+[source, as3]
+----
+var image:Image = getImage();
+var style:LightStyle = new LightStyle();
+style.ambientRatio = 0.3;
+style.diffuseRatio = 0.7;
+style.specularRatio = 0.4;
+style.shininess = 8.0;
+image.style = style;
+----
+
+The properties have the following meaning:
+
+ambientRatio::  The amount of ambient light reflected by the surface.
+                That's the basic illumination of a scene; even if a surface is not hit by light rays, it will receive some ambient light. [Range: 0-1]
+diffuseRatio::  The amount of diffuse light reflected by the surface.
+                Illumination is determined by the angle with which the light hits the surface. [Range: 0-1]
+specularRatio:: The amount of specular light reflected by the surface.
+                That's basically the reflection of the light source on the surface. [Range: 0-1]
+shininess::     This affects the specular reflections on the surface.
+                High values will yield small, point-like specular spots, like you would expect from a mirror. [Range: 0-32]
+
+This way of calculating illumination is called the _Phong Reflection Model_.
+The image below shows you how the different components add up to the final color of each pixel.
+
+.The Phong Reflection Model.
+image::phong-lighting.png[Phong Lighting]
+
+Up to this point, the illumination doesn't look all too exciting, though -- after all, the light is shining on a perfectly flat object.
+To change this, we need to add some depth to the object!
+
+That's done by setting up a normal vector for each pixel of the object.
+Technically, the object will still be flat -- but the light will bounce off just as if it were truly three dimensional!
+
+Question is, how to get to those vectors?
+My recommendation: use the excellent _SpriteIlluminator_ from Andreas Löw (also the author of _TexturePacker_).
+It turns normal map creation into a simple process that's no more difficult than drawing with colors.
+You can get it from https://www.codeandweb.com/spriteilluminator[CodeAndWeb].
+
+Create the normal map in the same dimensions as the standard texture and then pass it to the _LightStyle_ constructor.
+That will do it!
+
+[source, as3]
+----
+var normalMap:Texture = assets.getTexture("normal-map");
+var style:LightStyle = new LightStyle(normalMap);
+----
+
+.A normal map (far right) makes the character truly stand out. Note the three light sources at the top.
+image::dynamic-lighting-2.png[Dynamic Lighting, 800]

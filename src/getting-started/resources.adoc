@@ -113,8 +113,7 @@ One of the most friendly and patient communities you'll find on the web! +
 -> http://forum.starling-framework.org
 
 Starling Manual::
-ifdef::target-manual[The online manual you are reading right now.]
-ifndef::target-manual[The online manual provides an extensive introduction to Starling.]
+The manual you are reading right now.
 I try my best to keep it updated for each new release. +
 -> http://manual.starling-framework.org
 
@@ -131,9 +130,3 @@ Gamua Blog::
 Keep up to date with the latest news about Starling via the Gamua blog.
 I must admit I'm a little lazy when it comes to writing blog posts, but there will always be at least one for each Starling release. +
 -> http://gamua.com/blog
-
-Twitter::
-I'm using several social networks, but the best way to reach me is via `@Gamua`.
-Follow this account to get updates about new developments or links to other Starling-powered games. +
--> https://twitter.com/Gamua
-

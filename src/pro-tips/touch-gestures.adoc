@@ -1,0 +1,201 @@
+=== Touch Gestures
+
+The support of touch input was arguably one of the main reasons for the success of the original iPhone back in 2007.
+Today, interacting with mobile phones with our fingers feels so natural that it's hard to imagine it could ever have been different.
+Single- and multi-touch gestures have become second nature to most of us.
+
+Since Starling applications can run on both desktop and mobile devices, it made sense to unify mouse and touch input.
+In both cases, you rely on the _TouchEvent_ class, which works quite intuitively.
+
+NOTE: The only notable difference: mouse-over is handled via `TouchInput.HOVER`.
+It is only dispatched for mouse input (when the cursor _hovers_ over an object while the button is in "up"-state).
+
+The _TouchEvent_ and _Touch_ classes provide all the information you need to handle any possible input.
+However, Starling does not have a concept of gestures or other high-level input events.
+You have to implement that yourself.
+
+In the end, it's really not very complicated, though.
+Below, I will guide you through the creation of a sprite that can be moved around, rotated, and scaled by the user.
+
+NOTE: If that sounds familiar, that's because the Starling demo contains exactly such a class.
+
+First, make sure that multi-touch is enabled; without it, all but one finger will be ignored.
+During development, it's also useful to enable the multi-touch simulation.
+That way, you can use the kbd:[Ctrl] / kbd:[Cmd] and kbd:[Shift] keys to simulate two touch points.
+A huge time saver!
+
+[source, as3]
+----
+Starling.multitouchEnabled = true;
+
+var starling:Starling = new Starling(Game, stage);
+starling.simulateMultitouch = true;
+----
+
+IMPORTANT: Note that `multitouchEnabled` is a static property on the Starling class, while `simulateMultitouch` is an instance property.
+
+As for the actual class, let's make it a simple sprite that's set up with a _TouchEvent_ handler.
+
+[source, as3]
+----
+public class TouchSheet extends Sprite
+{
+    public function TouchSheet()
+    {
+        addEventListener(TouchEvent.TOUCH, onTouch); // <1>
+        useHandCursor = true; // <2>
+    }
+
+    private function onTouch(event:TouchEvent):void
+    {
+        // TODO
+    }
+}
+----
+<1> The event handler will detect touches on all children of the _TouchSheet_.
+<2> On mouse input, this will let the cursor change into the shape of a hand when it's hovering over the object.
+
+To work with this class, you will need to add some content, of course.
+Otherwise, there is nothing for the user to touch and move around.
+For example, you could add an image:
+
+[source, as3]
+----
+var sheet:TouchSheet = new TouchSheet();
+var image:Image = new Image(assets.getTexture("sheet"));
+sheet.addChild(image);
+addChild(sheet);
+----
+
+.The symbols on this sheet texture show how the gestures are supposed to be interpreted.
+image::touch-sheet.png[Touch Sheet, 300, pdfwidth="7cm", scaledwidth='300px']
+
+==== Single Touches
+
+The first task: the user must be able to drag around the sprite with a single finger.
+For the touch event handler, this means that we need to check how many fingers are being `MOVED` over the screen.
+If it's just one finger, we can add our *translation* (movement) logic.
+
+[source, as3]
+----
+var touches:Vector.<Touch> = event.getTouches(
+    this, TouchPhase.MOVED); // <1>
+
+if (touches.length == 1) // <2>
+{
+    var delta:Point = touches[0].getMovement(parent); // <3>
+    this.x += delta.x; // <4>
+    this.y += delta.y;
+}
+----
+<1> We are only interested in touches on top of `this`, and only in touches that are moving.
+    It's not relevant to us if a touch just started or ended, for example.
+<2> Movement logic is triggered when there is exactly one finger on the screen.
+<3> The `getMovement` method returns exactly what we need: the movement vector of the finger during the last frame.
+    Note that we ask for the movement in the _parent_ coordinate system: that's because `x` and `y` are actually always referring to the parent coordinate system.
+<4> With this information, we can update the `x` and `y` coordinates of the sprite accordingly.
+
+That's all quite straight-forward, right?
+The `getMovement` method makes this really simple.
+
+==== Multiple Touches
+
+The gestures that involve two fingers require a little more work.
+Let's start with the pinch gesture; it allows the user to *scale* the object.
+
+[source, as3]
+----
+else if (touches.length == 2)
+{
+    var touchA:Touch = touches[0]; // <1>
+    var touchB:Touch = touches[1];
+
+    var currentPosA:Point  = touchA.getLocation(parent); // <2>
+    var previousPosA:Point = touchA.getPreviousLocation(parent);
+    var currentPosB:Point  = touchB.getLocation(parent);
+    var previousPosB:Point = touchB.getPreviousLocation(parent);
+
+    var currentVector:Point  = currentPosA.subtract(currentPosB); // <3>
+    var previousVector:Point = previousPosA.subtract(previousPosB);
+
+    // scale
+    var scaleDiff:Number = currentVector.length / previousVector.length; // <4>
+    this.scale *= scaleDiff;
+}
+----
+<1> For easy access, save references to the two _Touch_ instances.
+<2> For both fingers, store the current and previous positions (again, in the _parent_ coordinate system).
+<3> Calculate the distance vectors between the two fingers, both in the current and the previous frame.
+<4> Has the distance between the two fingers become bigger or smaller?
+    The ratio between the new length and the old length represents the change of the object scale.
+
+As you can see, the actual logic is rather trivial -- but we need to extract a lot of data out of the _Touch_ instances.
+Some of those values can be reused right away, for the *rotation* logic.
+
+[source, as3]
+----
+var currentAngle:Number  = Math.atan2(currentVector.y, currentVector.x); // <1>
+var previousAngle:Number = Math.atan2(previousVector.y, previousVector.x);
+
+var angleDiff:Number = currentAngle - previousAngle; // <2>
+this.rotation += angleDiff;
+----
+<1> Calculate the angle of the vector that's spawned up between the two fingers, both in the current and the previous frame.
+<2> The difference between the new angle and the old angle represents the change of the object's rotation.
+
+[NOTE]
+====
+If you ever asked yourself why Starling uses radians instead of degrees for the `rotation` property, here is the answer:
+all geometry functions of the standard API work with radians.
+By using the same unit of measurement everywhere, there is no need to convert the data before making use of it.
+====
+
+With that code, the sprite will rotate whenever the user moves two fingers in opposite directions.
+However, no matter where you touch the object, it always rotates around the sprite's origin -- that's not exactly what one would expect.
+Instead, it should rotate around the midpoint of the two fingers.
+
+The easiest way to handle that: move the object's pivot point to that midpoint.
+As a side effect, this code will make sure that translations work with both fingers, as well.
+
+[source, as3]
+----
+var previousLocalA:Point  = touchA.getPreviousLocation(this); // <1>
+var previousLocalB:Point  = touchB.getPreviousLocation(this);
+
+this.pivotX = (previousLocalA.x + previousLocalB.x) * 0.5; // <2>
+this.pivotY = (previousLocalA.y + previousLocalB.y) * 0.5;
+
+this.x = (currentPosA.x + currentPosB.x) * 0.5; // <3>
+this.y = (currentPosA.y + currentPosB.y) * 0.5;
+----
+<1> We start by getting the previous touch locations in the _local_ coordinate system.
+    Local, because both `pivotX` and `pivotY` are defined in local coordinates.
+<2> The pivot point is updated based on the _previous_ midpoint.
+<3> The position, on the other hand, is updated based on the _current_ midpoint in parent coordinates.
+
+We use the data from the previous frame to get the location of the pivot point; that tells us which "handle" the user is manipulating.
+The data from the current frame is then used to figure out where that handle has been moved to.
+
+That concludes our gesture handler!
+The _TouchSheet_ object can now be moved around on the screen naturally.
+
+[TIP]
+.Avoiding Temporary Objects
+====
+To keep it simple, the code above uses the _Point_ instances returned by the helper methods of the _Touch_ class.
+The side effect: each time the code is executed, several temporary objects will be created.
+To avoid that, you can use Starling's _Pool_ class.
+
+For example:
+
+[source, as3]
+----
+var point:Point = touch.getLocation(this, Pool.getPoint());
+// use point, then:
+Pool.putPoint(point);
+----
+
+In Starling, you will find many methods that support an optional `out` parameter.
+By passing an object into a method like this, the method will update that object instead of creating a new one.
+Especially in combination with the _Pool_ class, this allows you to reduce the total number of object allocations greatly.
+====

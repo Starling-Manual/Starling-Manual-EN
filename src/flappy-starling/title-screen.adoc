@@ -1,0 +1,250 @@
+== Title Screen
+
+Believe it or not, we are through with the actual gameplay logic!
+The biggest remaining task is adding some kind of title screen.
+
+When we split up the game into different phases, we already prepared one phase for this part of the game: `PHASE_IDLE`.
+It shows the bird flying horizontally on autopilot; the actual game only starts when we touch the screen.
+The title screen will simply be an overlay (a custom sprite) that's displayed during that phase.
+
+The main elements of this overlay are the following:
+
+Game Title::
+The text "Flappy Starling" displayed at the top, using our fancy bitmap font.
+
+Top Score::
+A TextField at the bottom showing the current score record.
+
+Tap Indicator::
+We need to tell the player that he is supposed to tap on the screen to start the game.
+A suitable image is part of the game's assets.
+
+.An image prompts the user to tap the screen.
+image::flappy/tap-indicator.png[Tap Indicator, width=250, scaledwidth='250px']
+
+=== Creating the TitleOverlay Class
+
+Create a new class called _TitleOverlay_.
+Add the following contents:
+
+[source, as3]
+----
+public class TitleOverlay extends Sprite
+{
+    private var _topScore:int; // <1>
+    private var _topScoreLabel:TextField;
+
+    public function TitleOverlay(width:Number, height:Number)
+    {
+        var title:TextField = /* ... */;
+        var tapIndicator:Image = /* ... */; // <2>
+        _topScoreLabel = /* ... */;
+
+        addChild(title);
+        addChild(tapIndicator); // <3>
+        addChild(_topScoreLabel);
+    }
+
+    // <4>
+    public function get topScore():int { return _topScore; }
+    public function set topScore(value:int):void
+    {
+        _topScore = value;
+        _topScoreLabel.text = "Current Record: " + value;
+    }
+}
+----
+<1> The current top score, as well as the label to display it, are stored as member variables.
+<2> This is where we will set up the elements of the overlay.
+<3> Each element is added to the display list right away.
+<4> A property allows us to change the top score from the outside.
+
+This procedure starts to become second nature, right?
+You create a custom _Sprite_ and add a number of display objects that make up its contents.
+You do that over and over when working with Starling.
+
+So let's create those three elements.
+
+==== Title
+
+[source, as3]
+----
+var title:TextField = new TextField(width, 200, "Flappy\nStarling");
+title.format.setTo("bradybunch", BitmapFont.NATIVE_SIZE, Color.WHITE);
+title.format.leading = -20;
+----
+
+We are using the same bitmap font as before ("Brady Bunch").
+Per default, the text is centered within the _TextField_, so by making it just as wide as the screen (and reasonably high), it will look nicely.
+Note that I made use of the `leading` property to reduce the distance between the two lines.
+
+==== Tap Indicator
+
+[source, as3]
+----
+var tapTexture:Texture = Game.assets.getTexture("tap-indicator");
+var tapIndicator:Image = new Image(tapTexture);
+tapIndicator.x = width / 2;
+tapIndicator.y = (height - tapIndicator.height) / 2;
+----
+
+Here, we acquire the texture `tap-indicator` and use it to create an _Image_.
+Vertically, that image is centered; horizontally, it is positioned slightly right of the center.
+
+==== Score Label
+
+[source, as3]
+----
+_topScoreLabel = new TextField(width, 50, "");
+_topScoreLabel.format.setTo(BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2);
+_topScoreLabel.y = height * 0.80;
+----
+
+This label uses the font `BitmapFont.MINI` that comes bundled with Starling.
+It won't win any beauty contests, but it will do for this use-case.
+Note that I multiplied its `NATIVE_SIZE` by two -- that's necessary because it is _really_ a tiny font.
+
+=== Using the TitleOverlay Class
+
+In the _Game_ class, we create a member variable for our new _TitleOverlay_ and instantiate it inside the `start` method.
+
+[source, as3]
+----
+private var _title:TitleOverlay; // <1>
+
+public function start(assets:AssetManager):void
+{
+    /* ... */
+
+    _title = new TitleOverlay(stage.stageWidth, stage.stageHeight); // <2>
+    addChild(_title);
+}
+
+----
+<1> For easy access, we store the overlay in a member variable.
+<2> It is instantiated with the full size of the stage.
+
+When you start the game now, the overlay will already be visible.
+It just doesn't go away when a game session starts, which is a little annoying.
+
+==== Fading in and out
+
+During the actual gameplay, the overlay should be hidden.
+We could simply set it to `visible = false`, but that would appear a little crude.
+Instead, I'd like to fade it out gracefully.
+
+The opacity of a display object is stored in its `alpha` property, which is in the range of zero (invisible) to one (opaque).
+To fade out a display object, we need to animate this property slowly from one to zero.
+
+Those types of animations are called _Tweens_ in Starling.
+The easiest way to create a tween is by calling the method `Starling.juggler.tween`.
+For example, if you wanted to fade out a standard image, here is how you could do it:
+
+[source, as3]
+----
+Starling.juggler.tween(image, 1.0, { alpha: 0.0 });
+----
+
+* The first argument of this method decides which object you want to animate.
+* The second argument defines the duration of the animation in seconds.
+* The final argument is a key-value pair listing the properties you want to animate, as well as the values you want to animate them to.
+
+This call will change `image.alpha` from its current value to zero, over a time period of one second.
+
+[NOTE]
+.The Juggler
+====
+You are probably wondering what that `Starling.juggler` property is all about.
+
+In Starling, the description of an animation (a _Tween_) is separate from its execution.
+The execution is handled by the _Juggler_: it simply advances a number of animations in each frame.
+You can create your own jugglers (which has some advantages, as shown in the <<Animations>> chapter), but there is also a default juggler on the Starling instance.
+That's the one we are using here.
+
+We briefly met the juggler already when we used its `delayCall` method to prevent a too abrupt end of the `PLAYING` phase.
+====
+
+With this knowledge, we can write the methods `showTitle` and `hideTitle`.
+
+[source, as3]
+----
+private function showTitle():void
+{
+    _title.alpha = 0.0; // <1>
+    _title.topScore = topScore; // <2>
+
+    Starling.juggler.tween(_title, 1.0, { alpha: 1.0 }); // <3>
+}
+
+private function hideTitle():void
+{
+    Starling.juggler.removeTweens(_title); // <4>
+    Starling.juggler.tween(_title, 0.5, { alpha: 0.0 }); // <5>
+}
+----
+<1> We start with an alpha value of zero.
+<2> Update the `topScore` property so it shows the current record.
+<3> Fade in the title overlay over the course of one second.
+<4> Stop all other animations on the title overlay.
+<5> Fade it out over the course of half a second.
+
+You might wonder what the call to `removeTweens` is for.
+When the player makes an error, the title overlay starts to fade in; this takes one second.
+The player might be eager to start a new game session right away -- before the overlay finished fading in!
+This would make the fade-in and fade-out tweens run simultaneously, which might lead to visual glitches (and is rather pointless).
+To make sure this doesn't happen, we remove all tweens on the title overlay before starting to fade out.
+
+[NOTE]
+.Hiding a DisplayObject
+====
+Instead of setting the title overlay to `visible = false`, or removing it from the display list altogether, we only changed its alpha value to zero.
+This is sufficient for our needs -- Starling won't render the object any longer.
+Different to the other techniques, the object will still receive touch input, though.
+Thus, if you add e.g. a button under the (now invisible) title, you won't be able to trigger it.
+
+That doesn't matter in "Flappy Starling", but it's a subtle difference you should be aware of.
+====
+
+To make sure those animations are actually executed, we need to call our new methods at the right time.
+The following modifications will do the trick:
+
+[source, as3]
+----
+private function start(assets:AssetManager):void
+{
+    /* ... */
+
+    showTitle(); // <1>
+}
+
+private function restart():void
+{
+    _scoreLabel.visible = false;
+    _world.reset();
+    showTitle(); // <2>
+}
+
+private function onTouch(event:TouchEvent):void
+{
+    var touch:Touch = event.getTouch(stage, TouchPhase.BEGAN);
+    if (touch)
+    {
+        if (_world.phase == World.PHASE_IDLE)
+        {
+            hideTitle(); // <3>
+            /* ... */
+        }
+
+        _world.flapBird();
+    }
+}
+----
+<1> Fade in the title when the game starts.
+<2> Show the title when the game is reset (`PHASE_IDLE` is starting).
+<3> Hide the title when a new game session is starting.
+
+Time to give the game another try!
+You will be pleased to see how far we have come.
+
+.Flappy Starling, now with title screen.
+image::flappy/title-screen.png[The title screen, pdfwidth='6cm']

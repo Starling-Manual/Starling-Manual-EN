@@ -1,0 +1,229 @@
+=== Custom Asset Types
+
+Starling's _AssetManager_ includes support for all the asset types needed in a typical app, like textures, sounds, JSON data -- you name it.
+However, it also allows adding your own asset types -- after all, every project is different.
+
+Let's look at a real life example.
+
+Per default, the AssetManager throws the _BitmapData_ of all textures away after loading -- to save memory.
+Sometimes, however, you need this data, e.g. to be able to look up individual pixels of a texture.
+So let's create a custom AssetManager that
+
+* adds support for the asset type `bitmapData` and
+* stores the bitmap data of any loaded PNG or JPG textures.
+
+==== Adding a new Asset Type
+
+The AssetManager groups assets by their type, with each type being identified via a unique string.
+So, even though there is no `bitmapData` type prepared, you can easily store bitmap data inside the standard AssetManager.
+For example, here's how to store the bitmap data of a user's avatar:
+
+[source, as3]
+----
+var assets:AssetManager = new AssetManager();
+const bitmapDataType:String = "bitmapData";
+
+// store avatar bitmap data
+var inData:BitmapData = getAvatarBitmapData();
+assets.addAsset("avatar", inData, bitmapDataType);
+
+// retrieve avatar bitmap data
+var outData:BitmapData = assets.getAsset(bitmapDataType, "avatar") as BitmapData;
+----
+
+The String `bitmapData` defines the new asset type, and you use it both for adding and retrieving any assets of that type.
+You'll probably want to store that String in a constant somewhere, to avoid typing errors.
+
+What's a little annoying is that you always have to cast the asset to the correct type (_BitmapData_) when retrieving it.
+Furthermore, it would be convenient if the asset type were recognized automatically when adding a bitmap data instance.
+
+That's why I recommend creating a new AssetManager subclass altogether when adding additional asset types.
+Like this:
+
+[source, as3]
+----
+public class MyAssetManager extends AssetManager
+{
+    public static const BITMAP_DATA_TYPE:String = "bitmapData";
+
+    override public function addAsset(name:String, asset:Object, type:String = null):void
+    {
+        if (type == null && asset is BitmapData)
+            type = BITMAP_DATA_TYPE;
+
+        super.addAsset(name, asset, type);
+    }
+
+    public function getBitmapData(name:String):BitmapData
+    {
+        return getAsset(BITMAP_DATA_TYPE, name) as BitmapData;
+    }
+}
+----
+
+With this modification, adding and removing bitmap data is much more convenient.
+
+[source, as3]
+----
+var assets:MyAssetManager = new MyAssetManager();
+
+// store avatar bitmap data
+var inData:BitmapData = getAvatarBitmapData();
+assets.addAsset("avatar", inData);
+
+// retrieve avatar bitmap data
+var outData:BitmapData = assets.getBitmapData("avatar");
+----
+
+This is really handy -- but you typically don't add assets manually to the AssetManager, do you?
+Instead, you _enqueue_ files or URLs and let the AssetManager do the adding itself.
+
+But how can we teach the AssetManager to store bitmap data during its loading process?
+
+==== Asset Factories
+
+The AssetManager actually doesn't execute the complete loading process all by itself.
+It's supported by a number of helper classes called "asset factories".
+One factory might by responsible for sounds, another for JSON data, and yet another for textures.
+
+For example, the _BitmapTextureFactory_ is used whenever a JPG or PNG file is encountered, or an embedded bitmap.
+Per default, it feeds the bitmap data into a new texture and then throws it away.
+That's what we want to change.
+
+We will create a custom factory that adds the bitmap data to the AssetManager instead.
+To do that, we could extend the _AssetFactory_ class, like this:
+
+[source, as3]
+----
+public class KeepBitmapTextureFactory extends AssetFactory
+{
+    public function KeepBitmapTextureFactory()
+    {
+        addMimeTypes("image/png", "image/jpg", "image/jpeg");
+        addExtensions("png", "jpg", "jpeg");
+    }
+
+    override public function canHandle(reference:AssetReference):Boolean
+    {
+        return reference.data is Bitmap || reference.data is BitmapData ||
+            super.canHandle(reference);
+    }
+
+    override public function create(
+        reference:AssetReference, helper:AssetFactoryHelper,
+        onComplete:Function, onError:Function):void
+    {
+        var bitmapData:BitmapData = ... // TODO
+        var texture:Texture = ... // TODO
+
+        helper.addComplementaryAsset(reference.name, bitmapData);
+        onComplete(reference.name, texture);
+    }
+}
+----
+
+When creating a custom asset factory, those are the steps you need to take:
+
+* Define which _mime types_ and _file extensions_ the factory is responsible for.
+  That's best done right in the constructor.
+* Override `canHandle`, which needs to figure out if the class can handle a specific "raw" asset.
+  The super call will simply check if the mime types and/or file extensions we just defined are a match.
+* Override `create`. That method will create the actual asset and pass it to the `onComplete` callback.
+  Any additional assets (here: the bitmap data) are passed to a method on the `helper` object.
+
+Actually, we can simplify this a little bit, though.
+After all, _BitmapTextureFactory_ already does most of this work -- no need to reinvent the wheel!
+So, I recommend extending that class instead.
+That way, we only need to override the `create` method.
+
+[source, as3]
+----
+public class KeepBitmapTextureFactory extends BitmapTextureFactory
+{
+    override public function create(
+        reference:AssetReference, helper:AssetFactoryHelper,
+        onComplete:Function, onError:Function):void
+    {
+        // TODO
+    }
+}
+----
+
+The `reference` object includes a `data` property that will store some kind of bitmap data when this method is called.
+We need to convert that bitmap data into a texture and pass both bitmap data and texture to the AssetManager.
+This is actually not that much work, but it takes a bit of set-up code to get it done.
+
+Here's the complete code:
+
+[source, as3]
+----
+override public function create(
+    reference:AssetReference, helper:AssetFactoryHelper,
+    onComplete:Function, onError:Function):void
+{
+    var texture:Texture;
+    var data:Object = reference.data; // <1>
+
+    // <2>
+    if (data is Bitmap)
+        onBitmapDataCreated((data as Bitmap).bitmapData);
+    else if (data is BitmapData)
+        onBitmapDataCreated(data as BitmapData);
+    else if (data is ByteArray)
+        createBitmapDataFromByteArray(data as ByteArray, onBitmapDataCreated, onError);
+
+    function onBitmapDataCreated(bitmapData:BitmapData):void
+    {
+        // equivalent to `createFromBitmapData(bitmapData);`
+        helper.executeWhenContextReady(createFromBitmapData, bitmapData); // <3>
+    }
+
+    function createFromBitmapData(bitmapData:Object):void
+    {
+        reference.textureOptions.onReady = function():void // <4>
+        {
+            helper.addComplementaryAsset(reference.name, bitmapData); // <5>
+            onComplete(reference.name, texture); // <6>
+        };
+
+        texture = Texture.fromData(bitmapData, reference.textureOptions); // <7>
+    }
+}
+----
+<1> Here's the raw asset we need to process.
+    It could be either a _Bitmap_, a _BitmapData_, or a _ByteArray_ with the raw file data.
+<2> BitmapData can be forwarded directly; for the ByteArray, we're getting help from a method inherited from our base class.
+<3> In theory, we could forward the bitmap data right away.
+    However, we can only create textures when there is a valid Stage3D context -- this helper method makes sure of that.
+<4> The `textureOptions` property contains the requested texture settings, like scale factor, format, etc.
+    This includes a callback that's executed once the texture is ready.
+    This is where we do the actual work!
+<5> Here, we're adding the bitmap data asset to the AssetManager.
+<6> The texture itself is now ready (hence `onReady`); it is passed to `onComplete`.
+<7> This call initiates texture creation with the correct options.
+
+As you can see, the code relies heavily on callbacks and helper methods from the base class, so it looks a little more complicated than it really is.
+What's important is that both texture and bitmap data are added to the AssetManager, which is done via the `onComplete` callback and the `addComplementaryAsset` helper method.
+
+We've got everything prepared now!
+All that's left to do is telling our custom AssetManager to actually use this new factory.
+We'll do that in its constructor.
+
+[source, as3]
+----
+public class MyAssetManager extends AssetManager
+{
+    public function MyAssetManager(scaleFactor:Number=1)
+    {
+        super(scaleFactor);
+        registerFactory(new KeepBitmapTextureFactory(), 1);
+    }
+}
+----
+
+Remember, the AssetManager already contains a couple of different factories (set up in the "super" call).
+It will try each factory in succession until it finds one that can actually handle the asset.
+By registering our factory with a priority of `1` (last parameter), we make sure that it is tried before the default factories (which all have a priority of `0`).
+
+That's it!
+We just created our own custom AssetManager that will keep the bitmap data for all loaded textures and allows easy access via the custom `getBitmapData` method.

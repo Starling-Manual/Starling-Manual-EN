@@ -1,0 +1,57 @@
+= Extensions
+
+To this point, we looked at all kinds of features that are part of the actual Starling library.
+Of course, these features cannot cover _all_ possible use cases, though.
+It would be impossible to provide everything out of the box; every game or app has different needs and requirements, after all.
+
+For this reason, Starling does not even attempt to be a jack-of-all-trades.
+Its goal has always been to provide a lightweight, robust core that can be extended in lots of different ways.
+Especially since the introduction of Starling 2.0, I think it has come very close to that goal.
+Thankfully, other developers quickly embraced this offer and made good use of Starling's extensibility!
+
+.Extensions Wiki
+****
+The Starling Wiki provides a respectable list of extensions of all types.
+Find it here: http://wiki.starling-framework.org/extensions/start[Starling Extensions].
+
+If you ever decide to write your own extension (thanks in advance!), please take the extra effort to add it to this list.
+That way, it will be easy for other developers to find it, and you can add some form of documentation or sample code right away.
+
+An extension doesn't have to be big and complex, by the way!
+If it consists of just a few lines of code that solve a common problem in a smart way, that's already reason enough to share it with the community.
+
+I even wrote some of the extensions myself, providing features that I'm considering useful, but just not universal enough to be part of the main framework.
+I provide the same support for them as for the rest of the Starling code.
+****
+
+In this chapter, we will look at some of the most useful extensions, tools and libraries:
+
+Particle System:: Create special effects like explosions, smoke, snow, fire, etc.
+Dynamic Lighting:: Use normal maps for realistic three-dimensional lighting effects.
+Texture Mask:: Mask a display object based on the alpha values of a texture.
+
+The most exciting additions are saved for last: they are hugely popular among Starling users and are extremely extensive!
+
+Feathers:: Provides an incredible number of user interface components to spice up your games or power complex business apps.
+Starling Builder:: A visual editor allowing to create in-game user interfaces in a matter of minutes.
+
+Let's jump right in!
+
+include::particle-system.adoc[]
+
+include::dynamic-lighting.adoc[]
+
+include::texture-mask.adoc[]
+
+include::feathers.adoc[]
+
+include::starling-builder.adoc[]
+
+== Summary
+
+This was just a quick overview of some of the available tools and libraries you can use with Starling.
+Of course, that was just scratching the surface -- it would be completely impossible to showcase all of them, let alone explain even one of them thoroughly enough to do it justice.
+
+IMPORTANT: To all developers that took part in the development of these and other extensions, or simply shared their expertise with the rest of us, I want to use this opportunity to say "Thanks"!
+To truly thrive, a bird needs a strong flock of friends, and the Starling community has always been the most extraordinary flock of all.
+I am proud to be part of it!

@@ -1,0 +1,348 @@
+== Feathers
+
+_This introduction was written by Josh Tynjala, the creator of Feathers._
+
+=== What is Feathers?
+
+_Feathers_ provides a large library of _user interface components_ for Starling Framework.
+Whether you're building a game or an application, you can choose to use only a few Feathers components or all of them.
+Robust skinning APIs allow you to change the appearance of Feathers components to match the exact style that you have in mind.
+It doesn't matter if Feathers is running on mobile or desktop, it was designed to work anywhere.
+
+image::feathers/themes.png[Feathers Themes]
+
+Feathers includes a number of example _themes_ that will automatically skin every component with a consistent style.
+These themes can be a good starting point for a new project, or you can create your own skins from scratch to match your custom designs.
+You can skin any Feathers component to use different font styles, different background or icon textures, or different layout options like padding and alignment.
+
+Feathers is designed with performance in mind, and all UI components are optimized to run at smooth framerates -- whether you're running your project on a desktop computer or a mobile device.
+Containers can scroll with a drag gesture on touchscreens, or you can display fixed scroll bars that may be used with a mouse for a desktop app.
+Feathers even provides an optional scaling system that automatically adjusts Starling's view port and stage dimensions to create a consistent layout across devices.
+
+==== Who should use Feathers?
+
+The Feathers architecture was designed with two types of developers in mind -- game developers and application developers.
+You can pick and choose a small number of components that you actually need to enhance your Starling game, but you can also build an entire application by taking advantage of all the layouts, navigation, and other advanced features that Feathers provides.
+
+* A game developer might drop in a Feathers _Slider_ component to control the music volume, and a Feathers _List_ component might be perfect to display the game's high scores.
+  Feathers components are regular Starling display objects, so you can insert them anywhere in your game with a simple call to `addChild()`.
+* An application developer might use more advanced components for navigation and layout.
+  For instance, a _Drawers_ component may be used to add a navigation drawer that links to multiple sections of a mobile app, and the _StackScreenNavigator_ component will keep track of history so that users can go back to a previous screen.
+  A _List_ component will use a _VerticalLayout_ by default where the data is positioned from top to bottom, but a _TiledRowsLayout_ may be used to position data in a grid instead.
+
+=== How to download Feathers?
+
+Similar to Starling, there are two ways to download Feathers.
+
+a. Download the latest stable release as a ZIP file from https://feathersui.com/download/[feathersui.com].
+b. Clone the Feathers Git repository.
+
+As with Starling, the advantage of downloading a stable release of Feathers is that you get a precompiled SWC that is easily linked to your project.
+
+If you clone the Feathers repository, you'll get the latest bug fixes and new features that are in development (with that in mind, things may be a little unstable in the repository sometimes).
+To download the Feathers repository, run the following command:
+
+    git clone https://github.com/BowlerHatLLC/feathers.git
+
+You will find the source code for Feathers in the `source` directory, and you may add that directory to your project's _source path_ the same way you did it with Starling source code.
+
+=== Resources
+
+Feathers Forum::
+The Starling forum contains a section dedicated specifically to Feathers.
+Josh Tynjala, the creator of Feathers, and other experts visit frequently to help troubleshoot issues and answer questions. +
+-> http://forum.starling-framework.org/forum/feathers
+
+Feathers Help Files::
+Just like Starling, Feathers provides an online manual that explains how to use the UI components.
+The online manual is updated with each new version of Feathers, but you can also view the help files offline when you download a specific Feathers release. +
+-> https://feathersui.com/help/
+
+Feathers API Reference::
+For detailed information about every class, method, or property available in Feathers, consult the Feathers API reference. +
+-> https://feathersui.com/api-reference/
+
+Social Media::
+Follow Feathers on Twitter and Facebook to stay up to date with the latest news and information. +
+-> https://twitter.com/feathersui +
+-> https://facebook.com/feathersui
+
+=== Example: Volume Slider
+
+Let's try out the `feathers.controls.Slider` component to change the volume of some audio.
+We'll start by creating the slider, and we set its direction so that the thumb may be dragged left and right:
+
+[source, as3]
+----
+var slider:Slider = new Slider();
+slider.direction = Direction.HORIZONTAL;
+addChild(slider);
+----
+
+NOTE: We could also set the `direction` property to `Direction.VERTICAL` to change the slider's orientation so that the thumb may be dragged up and down instead.
+
+The first thing we need to do is set the range of values. We might set the range from 0 to 100:
+
+[source, as3]
+----
+slider.minimum = 0;
+slider.maximum = 100;
+----
+
+Let's set our default volume to 80% with the `value` property:
+
+[source, as3]
+----
+slider.value = 80;
+----
+
+Next, it's important to know when the value changes as the player drags the slider's thumb.
+Let's listen for `Event.CHANGE`:
+
+[source, as3]
+----
+slider.addEventListener(Event.CHANGE, onSliderChange);
+----
+
+In our listener, we can access the `value` property of the slider to change the volume of a `flash.media.SoundTransform` object:
+
+[source, as3]
+----
+private function onSliderChange(event:Event):void
+{
+    var transform:SoundTransform = new SoundTransform();
+    transform.volume = slider.value / 100;
+    soundChannel.soundTransform = transform;
+}
+----
+
+We can easily pass the _SoundTransform_ to a _SoundChannel_ that is already playing.
+
+==== Skinning the slider
+
+A slider consists of two sub-components, the _thumb_ and the _track_.
+A user drags the thumb between the two end points of the track.
+
+image::feathers/slider.png[Slider, 300, pdfwidth='5cm', scaledwidth='300px']
+
+In Feathers, both the thumb and track are of type `feathers.controls.Button`.
+To customize the appearance of the slider, we need to skin these buttons:
+
+[source, as3]
+----
+var slider:Slider = new Slider();
+slider.thumbFactory = function():Button
+{
+    var thumb:Button = new Button();
+    thumb.defaultSkin = new ImageSkin(thumbTexture);
+    return thumb;
+};
+slider.minimumTrackFactory = function():Button
+{
+    var track:Button = new Button();
+    track.defaultSkin = new ImageSkin(trackTexture);
+    return track;
+};
+----
+
+We use a `feathers.skins.ImageSkin`, which adds some interesting new features to a `starling.display.Image`.
+For instance, we might want to change the texture displayed by the thumb when the button is down, or pressed:
+
+[source, as3]
+----
+var skin:ImageSkin = new ImageSkin(thumbTexture);
+skin.setTextureForState(ButtonState.DOWN, thumbDownTexture);
+thumb.defaultSkin = skin;
+----
+
+=== Example: High Score List
+
+Next, let's try out the `feathers.controls.List` component to create a list of high scores.
+We'll start by creating the list and setting its dimensions:
+
+[source, as3]
+----
+var list:List = new List();
+list.width = 200;
+list.height = 300;
+addChild(list);
+----
+
+We can use Starling's _AssetManager_ to load the high scores over the network.
+For brevity, we're going to skip that part and simply populate the list's data provider with some sample data.
+First, we'll need a class to store the data about each high score:
+
+[source, as3]
+----
+class HighScore
+{
+    public function HighScore(playerName:String, score:int, avatarURL:String)
+    {
+        this.playerName = player;
+        this.score = score;
+        this.avatarURL = avatarURL;
+    }
+
+    public var playerName:String;
+    public var score:int;
+    public var avatarURL:String;
+}
+----
+
+Then, we'll populate an _Array_ with several instances of our _HighScore_ class:
+
+[source, as3]
+----
+var items:Array =
+[
+    new HighScore("Player 1", 12000,
+        "https://example.com/player/42/avatar.jpg"),
+
+    new HighScore("Player 2", 10500,
+        "https://example.com/player/79/avatar.jpg"),
+
+    new HighScore("Player 3", 9500,
+        "https://example.com/player/133/avatar.jpg")
+];
+list.dataProvider = new ListCollection(items);
+----
+
+We'll pass that _Array_ to a _ListCollection_, which the list uses to keep track of its data by listening for events that tell it when items are added, removed, or replaced (among other useful things).
+
+Next, we need to tell the list how to display our _HighScore_ objects.
+A list creates an _item renderer_ for each item in the data provider.
+An item renderer is a Feathers component that will access the properties of our _HighScore_ class, and it can use that data to display things like text or images.
+
+image::feathers/item-renderer.png[Item Renderer, 300, pdfwidth='5cm', scaledwidth='300px']
+
+Let's customize the list's item renderers by telling them how to render the name of each player as text:
+
+[source, as3]
+----
+list.itemRendererFactory = function():IListItemRenderer
+{
+    var itemRenderer:DefaultListItemRenderer = new DefaultListItemRenderer();
+    itemRenderer.labelField = "playerName";
+    return itemRenderer;
+};
+----
+
+You should recall that the _HighScore_ class contains a property named `playerName`.
+To render this property as text, we can pass its name as a _String_ to the item renderer's `labelField` property.
+If the `labelField` is not found, for some reason, the item renderer will simply call `toString()` on the item.
+
+NOTE: We're using the _DefaultListItemRenderer_ component in this example because it's moderately flexible, in terms of layout and other basic customization options.
+It's also possible to create custom item renderer components, if this default item renderer doesn't meet your needs, but that's outside the scope of this introduction to Feathers.
+
+Next, let's render the player's avatar image in the item renderer:
+
+[source, as3]
+----
+itemRenderer.iconSourceField = "avatarURL";
+----
+
+In addition to the primary label, an item renderer may also have an _icon_.
+Typically, the icon is used to display an image.
+For convenience, we only need to pass in the image's URL, and the item renderer will take care of loading the bitmap and converting it to a texture.
+In the code above, we've set the item renderer's `iconSourceField` to the `avatarURL` property of the _HighScore_ class.
+
+Finally, we'll display the score on the right side of the item renderer:
+
+[source, as3]
+----
+itemRenderer.accessoryLabelField = "score";
+----
+
+An item renderer may have an _accessory_, which may display additional text, another image, a Feathers component, or any other type of Starling display object.
+In this case, we want to display the score as text, so we'll set the `accessoryLabelField` to the `score` property of the _HighScore_ class.
+
+==== Skinning the list
+
+A _List_ component has several visual parts that may be customized.
+The first is its background skin.
+This is the background that fills the entire width and height of the _List_ and is displayed behind the list's items.
+
+[source, as3]
+----
+list.backgroundSkin = new ImageSkin(listBackgroundTexture);
+----
+
+If the list is given padding, the `backgroundSkin` may be seen around the edges of the list's content, so it's also a good way to create a border.
+
+Most of the content in a _List_ is inside its item renderers.
+Previously, we customized the way that item renderers interpreted the properties of each item in the data provider.
+Let's look at how we might style them too:
+
+[source, as3]
+----
+list.itemRendererFactory = function():IListItemRenderer
+{
+    var itemRenderer:DefaultListItemRenderer = new DefaultListItemRenderer();
+    itemRenderer.defaultSkin = new ImageSkin(itemRendererUpTexture);
+    return itemRenderer;
+};
+----
+
+Similar to a _Button_ component, the _DefaultListItemRenderer_ can use a `feathers.skins.ImageSkin` as its background to change the texture displayed when the item renderer is in different states (such as the down state, when the item renderer is pressed by a touch or the mouse):
+
+[source, as3]
+----
+var skin:ImageSkin = new ImageSkin(itemRendererUpTexture);
+skin.setTextureForState(ButtonState.DOWN, itemRendererDownTexture);
+itemRenderer.defaultSkin = skin;
+----
+
+We can also customize an item renderer's font styles.
+In our example above, the item renderer displays a primary label with the name of the player and a secondary, accessory label to display the score.
+We can style both of these labels differently.
+
+
+.Text Renderers
+****
+Before we continue, we should understand a Feathers concept called _text renderers_.
+A text renderer is similar to `starling.text.TextField`, but text renderers are a bit more advanced, with access to extra, low-level customization options.
+Feathers comes with three built-in text renderers.
+
+* `feathers.controls.text.BitmapFontTextRenderer` renders text with bitmap fonts. This is the default text renderer.
+* `feathers.controls.text.TextBlockTextRenderer` renders text using Flash Text Engine, an advanced text layout engine that supports TrueType fonts.
+* `feathers.controls.text.TextFieldTextRenderer` renders text using the classic `flash.text.TextField`, another option for TrueType fonts.
+
+While `BitmapFontTextRenderer` is the default text renderer used by Feathers, we're going to use TrueType fonts in the following example, so we should tell Feathers to create a different text renderer by default:
+
+[source, as3]
+----
+FeathersControl.defaultTextRendererFactory = function():ITextRenderer
+{
+    return new TextBlockTextRenderer();
+};
+----
+
+Now, all of our item renderers and other components will use `TextBlockTextRenderer` instead of `BitmapFontTextRenderer`.
+****
+
+Similar to `starling.text.TextField`, Feathers text renderers may use `starling.text.TextFormat` to customize font styles.
+In the following example, we pass a _TextFormat_ object to the item renderer to customize the font styles for its primary label:
+
+[source, as3]
+----
+itemRenderer.fontStyles = new TextFormat("Arial", 16, 0x999999);
+----
+
+Earlier, we also displayed the score using an accessory label.
+Let's supply font styles for this sub-component too.
+We'll use the same font, but a different size.
+
+[source, as3]
+----
+itemRenderer.accessoryFontStyles = new TextFormat("Arial", 12, 0x999999);
+----
+
+There are many more style properties that we can customize on lists and item renderers, especially for changing the layout.
+For instance, we could display the item renderers in a grid with multiple rows by passing a _TiledRowsLayout_ to the _List_.
+Inside the item renderer, we could move the icon from the left side to a position above the primary text using the `iconPosition` property, or we might align everything to the center or right with the `horizontalAlign` property.
+
+=== Roundup
+
+You should now have a basic understanding of Feathers and some of the UI components that are available to you.
+This introduction only scratches the surface of what Feathers offers, though.
+Explore the Feathers documentation to learn more!

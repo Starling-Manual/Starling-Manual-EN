@@ -1,0 +1,313 @@
+== Obstacles
+
+The actual challenge of _Flappy Starling_ is to guide the bird safely through as many obstacles as possible.
+Until now, those obstacles are nowhere to be seen, though.
+Time to change that!
+
+Before we start, let's take a look at what exactly we are trying to achieve.
+If we zoomed out extensively, the game world would look like this:
+
+.The obstacles our player must avoid contact with.
+image::flappy/obstacles-overview.png[Obstacles Overview]
+
+In this section, we will work on two tasks:
+
+Creating obstacles::
+Each obstacle is made up of two images; one trunk on the top (the stalactite, if you will) and one on the bottom (the stalagmite).
+We will create a new class that represents one such pair of images.
+
+Moving obstacles::
+Those obstacles must be placed at a random height, and they must move in from the right in a steady flow.
+When they move out on the left, they should be removed from the display list.
+
+=== Creating Obstacles
+
+We could treat each obstacle simply as two separate images; on the other hand, the two trunks will always move along together, so it will quickly pay off to group them in a custom class.
+This will also simplify the collision detection code we need to implement in the next chapter.
+
+Create a new class called _Obstacle_ that extends _Sprite_.
+
+[source, as3]
+----
+public class Obstacle extends Sprite
+{
+    private var _radius:Number; // <1>
+    private var _gapHeight:Number; // <2>
+    private var _passed:Boolean; // <3>
+
+    public function Obstacle(gapHeight:Number)
+    {
+        var topTexture:Texture = Game.assets.getTexture("obstacle-top");
+        var bottomTexture:Texture = Game.assets.getTexture("obstacle-bottom");
+
+        _radius = topTexture.width / 2;
+        _gapHeight = gapHeight;
+        _passed = false;
+
+        // TODO: add trunk images
+    }
+
+    public function get passed():Boolean { return _passed; }
+    public function set passed(value:Boolean):void { _passed = value; }
+}
+----
+<1> The _radius_ of the semi-circle that terminates each trunk.
+    We need this information for collision detection.
+<2> The height of the gap through which the bird ought to fly.
+<3> A boolean value that will be set to `true` once the bird has passed this obstacle.
+
+The basic setup is pretty straight-forward, obviously.
+So let's deal with the code marked as `TODO`: adding trunk images.
+
+Basically, we just need to add two images with the textures referenced at the top of the constructor.
+But how exactly should we best position them within the sprite?
+
+I decided that the following setup would make most sense:
+
+.The coordinate system used for the obstacle sprite.
+image::flappy/obstacle-sprite.png[Obstacle Sprite, 80, pdfwidth='1.5cm', scaledwidth='80px']
+
+You see that the sprite's origin is in the center and the trunk images extend upwards and downwards.
+The bird must be guided through the empty gap, so it's important that it's always in the visible area of the stage.
+With the origin right at the center of the gap, it will be easy to place the obstacle within the _World_ later.
+The two trunk textures are very long; they will always exceed the stage bounds from this point.
+
+The following code (to be added to the _Obstacle_ constructor) sets up the sprite like that.
+
+[source, as3]
+----
+var top:Image = new Image(topTexture);
+top.pixelSnapping = true;
+top.pivotX = _radius;
+top.pivotY = topTexture.height - _radius;
+top.y = gapHeight / -2;
+
+var bottom:Image = new Image(bottomTexture);
+bottom.pixelSnapping = true;
+bottom.pivotX = _radius;
+bottom.pivotY = _radius;
+bottom.y = gapHeight / 2;
+
+addChild(top);
+addChild(bottom);
+----
+
+Do you remember the `pivotX` and `pivotY` properties we used when we created the bird object?
+Here they are again!
+This time, we move the pivot points of the top and bottom images to the center of the circular shape that terminates them.
+We could have placed the images without changing the pivot point, of course -- but I find this setup easier to handle.
+
+[IMPORTANT]
+.PixelSnapping
+====
+When we move the obstacles around, they might become a little blurry when they are not exactly aligned with the screen's pixels.
+With the `pixelSnapping` property enabled, Starling will make sure that the graphics always stay crisp.
+====
+
+=== Moving Obstacles
+
+Now that the basic building block is ready, we can integrate obstacles into the actual gameplay.
+As a first step, let's add some constants that we're going to need later.
+Add the following definitions somewhere near the top of the _World_ class.
+
+[source, as3]
+----
+private static const OBSTACLE_DISTANCE:Number = 180; // <1>
+private static const OBSTACLE_GAP_HEIGHT:Number = 170; // <2>
+public  static const OBSTACLE_PASSED:String = "obstaclePassed"; // <3>
+----
+<1> The distance between two successive obstacles.
+<2> The height of the gap between the top and bottom trunks of an obstacle.
+<3> The _type_ of the event we will dispatch whenever the bird passes an obstacle.
+
+The first two of those values actually make up the difficulty of the game.
+The values I used are educated guesses; later, when we fine-tune the game, we can always modify them until they feel right.
+
+We are also going to need a few additional member variables.
+Add them to the others we already defined at the top of the class.
+
+[source, as3]
+----
+private var _obstacles:Sprite; // <1>
+private var _currentX:Number;  // <2>
+private var _lastObstacleX:Number; // <3>
+----
+<1> All obstacles will be grouped together in this sprite.
+<2> The distance the player has covered since the start of the current session.
+<3> Whenever we add an obstacle, we store the current x-coordinate in this value.
+    That way, we can easily measure the distance covered since that moment, and we will know when to add the next one.
+
+With that out of the way, let's move to some basic setup procedures.
+For example, the container that will take up the obstacles needs to be initialized.
+
+[source, as3]
+----
+public function World(width:Number, height:Number)
+{
+    /* ... */
+
+    addBackground();
+    addObstacleSprite(); // <1>
+    addGround();
+    addBird();
+}
+
+private function addObstacleSprite():void
+{
+    _obstacles = new Sprite(); // <2>
+    addChild(_obstacles);
+}
+----
+<1> Add the obstacle container sandwiched between the background and the ground tiles.
+<2> The actual container remains empty for now.
+
+Furthermore, when the game session starts or ends, we need to reset some values:
+
+[source, as3]
+----
+public function start():void
+{
+    _phase = PHASE_PLAYING;
+    _currentX = _lastObstacleX = 0; // <1>
+}
+
+public function reset():void
+{
+    _phase = PHASE_IDLE;
+    _obstacles.removeChildren(0, -1, true); // <2>
+    resetBird();
+}
+----
+<1> Reset the covered distance and the last obstacle's position.
+<2> Remove and dispose all obstacles that are currently visible.
+
+Agreed: this was a lot of rather boring stuff.
+We are done with that, though: time to actually add some obstacles to the screen.
+
+Since the obstacles are constantly moving, that logic must be triggered once per frame.
+We already have a method that fits that description, right?
+Exactly: I'm talking about `advanceTime`.
+Make the following modifications to the part that deals with `PHASE_PLAYING`:
+
+[source, as3]
+----
+if (_phase == PHASE_PLAYING)
+{
+    _currentX += SCROLL_VELOCITY * passedTime; // <1>
+    advanceObstacles(passedTime); // <2>
+    advancePhysics(passedTime);
+    checkForCollisions();
+}
+----
+<1> Update `currentX`, which reflects the current the position of our (pseudo) camera.
+<2> The `advanceObstacles` method will contain the logic that deals with the obstacles.
+
+Most of the task is actually forwarded to the `advanceObstacles` method.
+It needs to handle several things:
+
+* Move any existing obstacles slightly to the left.
+* Add new obstacles in regular intervals.
+* Remove and dispose any obstacles that left the screen to the left.
+
+Translated to actual AS3 source code, this means:
+
+[source, as3]
+----
+private function advanceObstacles(passedTime:Number):void
+{
+    if (_currentX >= _lastObstacleX + OBSTACLE_DISTANCE) // <1>
+    {
+        _lastObstacleX = _currentX;
+        addObstacle(); // <2>
+    }
+
+    var obstacle:Obstacle;
+    var numObstacles:int = _obstacles.numChildren;
+
+    for (var i:int=0; i<numObstacles; ++i) // <3>
+    {
+        obstacle = _obstacles.getChildAt(i) as Obstacle;
+
+        if (obstacle.x < -obstacle.width / 2) // <4>
+        {
+            obstacle.removeFromParent(true); // <5>
+            i--; numObstacles--; // <6>
+        }
+        else obstacle.x -= passedTime * SCROLL_VELOCITY; // <7>
+    }
+}
+----
+<1> If the distance to the previous obstacle exceeds the threshold ...
+<2> ... add a new one. We will implement this method soon.
+<3> Iterate over all obstacles that are currently part of the display list.
+<4> Check if an obstacle has left the screen to the left.
+<5> If so, remove it from its parent sprite, and dispose it right away.
+<6> Attention: we are modifying the sprite we are currently iterating over!
+    To avoid any errors when the loop continues, we need to fix the loop variables.
+<7> All other obstacles simply move a little bit to the left.
+
+Pay special attention to the part where we modify the obstacles sprite while iterating over it.
+If we hadn't fixed the loop variables accordingly, this would have lead to an exception.
+That's easy to overlook!
+
+I know it's been quite a while since we could actually run our application without an error.
+Bear with me -- we are almost there!
+
+All that's left to do now is implementing the `addObstacle` method we just called.
+What exactly must this method achieve?
+
+* Create a new _Obstacle_ instance and place it at the far right of the screen.
+* Move it to a random vertical position within the available screen height.
+
+[source, as3]
+----
+private function addObstacle():void
+{
+    var minY:Number = OBSTACLE_GAP_HEIGHT / 2;
+    var maxY:Number = _ground.y - OBSTACLE_GAP_HEIGHT / 2;
+    var obstacle:Obstacle = new Obstacle(OBSTACLE_GAP_HEIGHT); // <1>
+    obstacle.y = minY + Math.random() * (maxY - minY); // <2>
+    obstacle.x = _width + obstacle.width / 2; // <3>
+    _obstacles.addChild(obstacle); // <4>
+}
+----
+<1> Create a new _Obstacle_ instance (the class we created a little earlier in this section).
+<2> Move the obstacle to a random vertical position, somewhere between `minY` and `maxY`.
+    The `Math.random()` method helps: it returns a random number between zero and one.
+<3> Move it just a bit outside of the screen horizontally (so that it's not yet visible).
+    The `advanceObstacles` method will slowly move it to the left later.
+<4> For the obstacle to become visible, we must add it to its parent container.
+
+Finally, we can compile and start the game again!
+Do just that and give it a try.
+
+.This looks more and more like the real thing!
+image::flappy/in-game-obstacles.png[In-game obstacles, pdfwidth='6cm']
+
+This is starting to make fun, right?
+Don't get overly confident if you feel invincible when playing the game, though: that's probably because we didn't implement collision detection yet.
+Oops!
+
+In any case, as soon as you click once to start the game, the obstacles should start moving in from the right.
+When they move out on the left, they are automatically removed from the display list.
+Looking good!
+
+[TIP]
+.Verifying Assumptions
+====
+Are the obstacles really disposed when they move out?
+Actually, we wouldn't see that just from playing the game.
+If that part of the logic doesn't work, the number of obstacles will simply grow endlessly, and we will only notice it when performance starts to suffer.
+
+In such situations, it's a good idea to actually verify that your code works alright.
+An easy way to do that would be to simply `trace` the number of obstacles currently on the screen.
+For example, you could add the following line to `advanceTime`:
+
+[source, as3]
+----
+trace("visible obstacles: " + _obstacles.numChildren);
+----
+
+In debug mode, your IDE should allow to display the "console", where those trace statements will end up.
+If everything went alright, the printed number should stay very low (with the given resolution, switching between just 2 and 3).
+====

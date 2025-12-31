@@ -1,0 +1,419 @@
+== Starling Builder
+
+_This introduction was written by Johann Huang, the creator of Starling Builder._
+
+Starling Builder is an open source user interface editor for Starling.
+Built on top of Starling and Feathers, it provides a WYSIWYG editor that allows to create any in-game user interface in minutes.
+
+=== Background
+
+Compared to "vanilla" AIR, Starling has allowed developers to target a much broader range of mobile devices.
+There is one drawback, though: it doesn't work well with _AnimateCC_ (previously _Flash Professional_).
+In the old days of the classic Flash API, we used to design a user interface inside Flash Professional, export it to an SWF file, and then load it into the game.
+This workflow was powerful and convenient for both artists and engineers -- but it no longer works due to the lack of Stage3D support.
+
+Starling Builder aims to bring back this power.
+Since it was built directly with Starling and Feathers, it supports all their features, and all output is guaranteed to be absolutely accurate.
+
+Starling Builder consists of three parts:
+
+Engine:: The engine is the core part of the project.
+         It is used to convert json files into Starling display objects and vice versa.
+         You will need to add this library to your game.
+Editor:: The desktop application with which you design your user interface.
+Extension:: Provides a way to support custom UI components and themes without the need to recompile the editor.
+
+image::builder/graph.png[Starling Builder Graph, 700, pdfwidth='100%', scaledwidth='700px']
+
+In a nutshell, this is how Starling Builder works:
+
+. In the editor, you create the display objects and save them to layouts in JSON format.
+. In the game, the engine (runtime) recreates the display objects from the layouts.
+
+Sounds simple, right?
+Yes, simplicity was the biggest design goal of the library.
+It's not trying to reinvent anything Starling has already done.
+The engine is only about 1000 lines of code, and that's all you need to add into your project!
+Thanks to the simplicity of the design, you can learn the basic usage in minutes and master the rest within a week.
+
+=== Casino Fun
+
+To cover the usage of Starling Builder, we are going to create a simple app together.
+We need a fun but simple game with lots of images and buttons -- so what would be better suited than a slot machine!
+Have you seen those dazzling animated screens in a casino?
+With the help of Starling Builder, we will bring them to your desktop and mobile devices in just a few minutes.
+
+Without further ado, let's get started by laying out some user interfaces.
+
+Open up the editor. It will prompt you to choose a folder as a workspace.
+The workspace is a place to save your assets, extensions and settings.
+Since this is a new project, you can simply pick an empty folder.
+
+Now you need to put your assets into the workspace.
+By default, the editor will read assets from the `textures` folder in the workspace (you can configure the asset paths by clicking on _menu:Workspace[Workspace Settings]_).
+If everything goes well, the assets will show up in the _asset_ tab as shown below.
+
+image::builder/assets.png[Starling Builder Assets, 700, pdfwidth='12cm', scaledwidth='700px']
+
+The editor supports different Starling and Feathers components as well as any custom UI components loaded from extensions.
+For simplicity, this game will only use the following Starling components: _Image_, _Button_, _TextField_ and _Sprite_.
+Here is the layout created with the editor.
+
+image::builder/layout.png[Starling Builder Layout, 700, pdfwidth='12cm', scaledwidth='700px']
+
+TIP: Group your UI components into a sprite if you need to dynamically position them.
+
+Here is a small trick for the editor: sometimes you want to add placeholder assets to try out a specific layout, but you don't want to actually create them inside the game (e.g. the animal cards on the reels).
+In this case, enter the _custom_ tab on the right panel and check `forEditor`.
+When you test it by clicking on _menu:File[Test Game]_, those cards won't show up.
+
+=== Loading the Layout
+
+Now we are ready to create the actual game project.
+As a preparation, clone or download the official https://github.com/yuhengh/starling-builder-engine[starling-builder-engine] repository from GitHub.
+It contains the source of the engine, as well as a simple scaffold project that will serve as the starting point of our game.
+
+Use your favorite ActionScript IDE to create a new project.
+Copy the folders `src`, `scaffold/src` and `scaffold/libs` from the engine repository to this project.
+When you run it now, you should see just a simple "Hello World" TextField.
+
+The HUD we created above will be represented by a class extending `starling.display.Sprite`.
+The method `UIBuilder.create` will recreate our layout inside Starling.
+
+[source, as3]
+----
+public class HUD extends Sprite
+{
+    public function HUD()
+    {
+        var data:Object = JSON.parse(new EmbeddedLayouts.hud());
+        var sprite:Sprite = Game.uiBuilder.create(data) as Sprite; // <1>
+        addChild(sprite);
+    }
+}
+----
+<1> This call creates the display objects from the layout data.
+
+Now exchange the placeholder _TextField_ with the _HUD_ class we just created.
+That's done in the `init` method of the _Game_ class.
+
+[source, as3]
+----
+public class Game extends Sprite
+{
+    // ...
+
+    private function init():void
+    {
+        addChild(new HUD());
+    }
+}
+----
+
+All is looking well so far, isn't it?
+However, when you start the project now, you will run into the following error:
+
+[source]
+----
+[Fault] exception, information=ReferenceError: Error #1065: Variable Button is not defined.
+----
+
+*What does it mean?*
+
+This is actually the most frequently asked question of Starling Builder users.
+We need to step aside a little bit to see how the compiler works.
+
+There is a technique in modern compilers called _dead code elimination_ (DCE).
+In order to reduce the size of the executable, the compiler will only link the code that's being directly used in the source files.
+In our project, we didn't use the _Button_ class yet, so it's not linked into the project.
+When the _UIBuilder_ class tries to create a button dynamically from the layout, this causes an exception.
+
+In order to fix that, we need to do something to make the compiler know this class is being used.
+All we have to do is reference the class somewhere; here, I just add a mock button variable to the HUD.
+After you use the _Button_ class in your code, which you certainly will, you can remove the mock button.
+
+[source, as3]
+------------
+public class HUD extends Sprite
+{
+    private var _button:Button; // <1>
+
+    public function HUD()
+    {
+        var data:Object = JSON.parse(new EmbeddedLayouts.hud());
+        var sprite:Sprite = Game.uiBuilder.create(data) as Sprite;
+        addChild(sprite);
+    }
+}
+------------
+<1> Let the compiler know we are using the _Button_ class.
+
+That fixes it -- and voilà! The layout has been loaded.
+
+The next step is to access the UI components we need to manipulate.
+One way to do that would be using the `getChildByName` API.
+The problem, however, is that you will end up writing a lot of boilerplate code, and it will be even more tedious to access nested elements.
+
+So, is there a better way?
+I'm glad you ask!
+
+When creating the layout in Starling Builder, you can assign names to each object (in the _properties_ tab on the right).
+Use the same names for the member variables of your class, and Starling Builder will bind them to the correct objects -- if you tell it to.
+That's done by the `binder` parameter of the `UIBuilder.create` method.
+
+[source,as3]
+----
+public class HUD extends Sprite
+{
+    public var _root:Sprite;
+
+    public var _topContainer:Sprite;
+    public var _slotContainer:Sprite;
+
+    public var _balanceText:TextField;
+    public var _addBalanceButton:Button; // <1>
+
+    // ...
+
+    public function HUD()
+    {
+        var data:Object = JSON.parse(new EmbeddedLayouts.hud());
+        Game.uiBuilder.create(data, true, this); // <2>
+        addChild(_root);
+    }
+}
+----
+<1> Now you are using an actual button! You can safely remove the previous mock button.
+<2> This is where all the magic happens. Note how we pass `this` as third parameter.
+    Everything starting with an underscore will be bound after this call.
+
+[NOTE]
+====
+Internally, the engine will check recursively for any display objects with names starting with an underscore, and try to assign them to the public variable of the binder class with the same name.
+So all you need to do is declare the elements you want to access and they will be ready to use immediately after calling `UIBuilder.create()`.
+====
+
+You may feel a little bit uncomfortable with prefixing a public variable with an underscore, since the convention is to only do that for _private_ members.
+The reason is that it's impossible to access a _private_ (or _protected_) variable from outside the class in ActionScript 3.
+Consider this as a trade-off for convenience -- it's totally worth it.
+
+Now let's make use of our bound display objects and set them up dynamically:
+
+[source,as3]
+------------
+public class HUD extends Sprite
+{
+    public var _root:Sprite;
+
+    public var _topContainer:Sprite;
+    public var _slotContainer:Sprite;
+
+    public var _balanceText:TextField;
+    public var _addBalanceButton:Button;
+
+    // ...
+
+    public function HUD()
+    {
+        var data:Object = JSON.parse(new EmbeddedLayouts.hud());
+        Game.uiBuilder.create(data, true, this);
+        addChild(_root);
+
+        var stage:Stage = Starling.current.stage;
+        var stageWidth:Number = stage.stageWidth;
+        var stageHeight:Number = stage.stageHeight;
+
+        const margin:Number = 40; // <1>
+        _topContainer.x = stageWidth - _topContainer.width - margin;
+        _topContainer.y = margin;
+
+        _slotContainer.x = (stageWidth  - _slotContainer.width)  / 2; // <2>
+        _slotContainer.y = (stageHeight - _slotContainer.height) / 2;
+
+        _balanceText.text = "999"; // <3>
+        _addBalanceButton.addEventListener(Event.TRIGGERED, onAddBalance); // <4>
+    }
+
+    private function onAddBalance(event:Event):void
+    {
+        trace("adding balance...");
+    }
+}
+------------
+<1> Anchor the top container to the top left of the screen with a margin of 40 points.
+<2> Center the slot container on the screen.
+<3> Assign the balance text.
+<4> Add an event listener to the button that will be called when it's pressed.
+
+image::builder/hud.png[Starling Builder HUD, 350, pdfwidth='6cm', scaledwidth='350px']
+
+=== Under the Hood
+
+Now that the user interface is in place, let's focus on the core game mechanic.
+For this simple demo, we are going to use a three reels slot machine and three different cards.
+How are we going to calculate the pay table for each match?
+It's all about math, or, to be more specific, probability.
+Let's review some basic probability theory from high school.
+
+If you toss a 6-face dice, what's the probability of getting `1`?
+You know from your experience it's `1/6`.
+Why? Because there are 6 faces in total and there is only one face with `1`.
+So we have
+
+image::builder/dice-probability.svg["Probability", 270, pdfwidth="5.4cm" scaledwidth="270px"]
+
+// LaTeX:
+// p = \frac{\text{winning combinations}}{\text{possible combinations}} = \frac{1}{6}
+
+You may think of a reel like a dice with all the faces piled in a column.
+Each time it stops, a random position in the column will be selected.
+What's different is that we can set up the elements of each column arbitrarily.
+
+Let's use the layout shown below.
+The 3 columns represent 3 reels in the slot machine.
+Each column can be rotated individually.
+
+image::builder/reels.png[Slot Machine Reels, 150, pdfwidth='2.5cm', scaledwidth='150px']
+
+For example, the probabilities of ending up with a zero in each column are the following:
+
+====
+Column 1: `p(0) = 3/5` +
+Column 2: `p(0) = 1/3` +
+Column 3: `p(0) = 1/4`
+====
+
+To get to the combined probability of hitting three zeros, we multiply the individual probabilities.
+Repeating this for all numbers, we are going to end up with the following probabilities:
+
+====
+`p(all 0) = 3/5 × 1/3 × 1/4 = 1/20` +
+`p(all 1) = 1/5 × 1/3 × 2/4 = 1/30` +
+`p(all 2) = 1/5 × 1/3 × 1/4 = 1/60`
+====
+
+The bank always wins, right?
+So we need to assign the winnings in a way that the expected payout for one credit is below 1 (typically, it's between 0.8 and 1).
+In the sample code, I decided to settle on 5, 10, and 20 credits, respectively.
+
+====
+expected payout = `1/20 × 5 + 1/30 × 10 + 1/60 × 20 = 0.92`
+====
+
+This means for 1 credit you bet, you get 0.92 credits back, on average.
+Fair enough!
+You can find the implementation in the _SlotMachine_ class.
+
+=== Animating the Reels
+
+Now it's time to hook up the rest of the game.
+Everything is pretty straight forward except, well, the reels.
+
+There are different techniques to animate the reels.
+In this demo, we are going to create a render texture for each reel and tween the `Image.tileGrid.y` property to animate it.
+Here is the key implementation:
+
+[source,as3]
+----
+private function initSlot():void
+{
+    var image:Image;
+    var slots:Array = _slotManager.slots;
+    var positions:Array = _slotManager.positions;
+    var assets:AssetManager = Game.assetManager;
+
+    for (var i:int = 0; i < slots.length; ++i)
+    {
+        var slot:Array = slots[i];
+        var rt:RenderTexture = new RenderTexture(
+            CARD_SIZE, CARD_SIZE * slot.length); <1>
+
+        for (var j:int = 0; j < slot.length; ++j) <2>
+        {
+            image = new Image(assets.getTexture(slot[j]));
+            image.y = CARD_SIZE * j;
+            rt.draw(image);
+        }
+
+        var sprite:Sprite = this["_slot" + i];
+        sprite.removeChildren(0, -1, true);
+
+        var reel:Image = new Image(rt); <3>
+        reel.width = CARD_SIZE;
+        reel.height = CARD_SIZE * 3;
+        reel.tileGrid = new flash.geom.Rectangle(
+            0, (1 - positions[i]) * CARD_SIZE,
+            CARD_SIZE, CARD_SIZE * slot.length);
+
+        sprite.addChild(reel);
+    }
+}
+----
+<1> Create a render texture for each reel.
+<2> Draw the cards into the render texture.
+<3> Create an image from the render texture and add it to the container.
+
+[source,as3]
+----
+private function animateSpin():void
+{
+    var count:int = 0;
+    var slots:Array = _slotManager.slots;
+    var positions:Array = _slotManager.positions;
+
+    _spinning = true;
+
+    for (var i:int = 0; i < 3; ++i)
+    {
+        var distance:int = // <1>
+            ((_prevPositions[i] - positions[i]) + slots[i].length)
+            * CARD_SIZE + 2 * CARD_SIZE * slots[i].length * (i + 1);
+
+        _prevPositions[i] = positions[i];
+        var reel:Image = this["_slot" + i].getChildAt(0) as Image;
+        var duration:Number = distance / SPIN_SPEED;
+
+        Starling.juggler.tween(reel.tileGrid, duration, // <2>
+        {
+            y: reel.tileGrid.y + distance,
+            onUpdate: function(r:Image):void
+            {
+                r.tileGrid = r.tileGrid;
+            },
+            onUpdateArgs: [reel],
+            onComplete: function():void
+            {
+                ++count;
+                if (count == 3)
+                {
+                    _spinning = false;
+                    onSpinComplete();
+                }
+            }
+        });
+    }
+}
+----
+<1> Calculate the distance based on the previous and current positions.
+<2> Tween `reel.tileGrid.y` according to distance and spinning speed.
+
+image::builder/game.png[Starling Builder Game, 350, pdfwidth='6cm', scaledwidth='350px']
+
+You can check out the complete source code of this project on https://github.com/yuhengh/slot-machine-demo[GitHub].
+
+=== Roundup
+
+There are a lot of benefits to using Starling Builder for laying out user interfaces, even though it's completely optional.
+The biggest win is that, by using the editor, you don't need to compile your project every time you want to adjust some small detail.
+Developers can hand over the work to the artists, who are way better at getting the job done for their skill sets.
+
+Another gain of using Starling Builder is to learn and experiment with the API.
+For example, if you want to see the difference between `TextField.autoSize` and `TextField.autoScale`, normally you need to setup a test project and compile it a couple of times to see all the different results.
+With the help of Starling Builder, you can just drag a _TextField_ onto the canvas and choose different values to see how it works immediately.
+It's like _JSFiddle_ for Starling!
+
+In addition to the core functionality this chapter introduces, Starling Builder can also handle localization, tweening, theming, custom components, and more.
+For more information please visit the http://starlingbuilder.github.io/[Starling Builder website]!
+
+Just like Starling, Starling Builder is completely free and open source.
+Feedback and pull requests are more than welcome!

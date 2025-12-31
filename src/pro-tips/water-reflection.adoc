@@ -1,0 +1,211 @@
+=== Water Reflection
+
+In the early years of the Internet, many web developers -- frustrated by the limitations of early HTML -- used Flash simply to show off.
+Even if the website itself didn't have much content, you could be sure there was a Flash intro and some kind of animated reflection effect.
+Anybody with a tiny bit of self respect simply _had_ to do it!
+
+Thankfully, those days are long over.
+Nevertheless, a part of me still likes eye-candy like that.
+If used with care, an unobtrusive reflection might be turned into a nice special effect.
+So let's look at how this can be achieved with Starling.
+
+==== The Plain Reflection
+
+For this sample, we will set up a sprite with a bird flying in front of a colorful sky.
+
+The basic (flat) reflection is actually achieved with a really lame trick: we simply create the same sprite twice and flip the bottom one vertically.
+Here is the basic setup-code, to be called e.g. from the constructor of a sprite.
+
+[source, as3]
+----
+private function setup():void
+{
+    var topSprite:Sprite = createSprite(); // <1>
+    addChild(topSprite);
+
+    var bottomSprite:Sprite = createSprite(0xddeeff); // <2>
+    bottomSprite.scaleY = -1; // <3>
+    bottomSprite.y = topSprite.height * 2;
+    addChild(bottomSprite);
+}
+
+private function createSprite(tint:uint=0xffffff):Sprite
+{
+    var sprite:Sprite = new Sprite();
+    var sky:Image = new Image(assets.getTexture("dusk-sky"));
+    sky.color = tint;
+    sprite.addChild(sky);
+
+    var bird:MovieClip = new MovieClip(assets.getTextures("bird-")); // <4>
+    bird.alignPivot();
+    bird.x = sky.width / 2;
+    bird.y = sky.height / 2;
+    sprite.addChild(bird);
+    juggler.add(bird); // <5>
+
+    return sprite;
+}
+----
+<1> The top sprite contains the upright objects; that's what we are directly looking at.
+<2> The bottom sprite represents the reflection.
+    By tinting the sky image in light blue, we can make it look more like water.
+<3> This code flips the bottom sprite vertically.
+<4> The bird animation is implemented with a _MovieClip_.
+<5> This code supposes that the class contains a custom _Juggler_.
+    You could also use the standard `Starling.juggler`, of course.
+
+Now what we are seeing is this:
+
+.For the basic (plain) reflection effect, the bottom sprite is flipped.
+image::reflection-plain.png[Plain Reflection, 256, scaledwidth='256px']
+
+==== Adding a Distortion
+
+For the distortion effect, we are going to use Starling's _DisplacementMapFilter_.
+That's an extremely versatile filter that can distort the pixels of an object via a _map texture_.
+It's not the easiest filter to use and set up, but once you master it, you can achieve amazing things.
+
+Step one is to create a map texture.
+To create such a texture, we can use the `perlinNoise` method of Flash's _BitmapData_ class.
+
+NOTE: The Perlin Noise algorithm produces a pseudo-random noise texture that's perfect to simulate natural phenomena like clouds or water.
+
+The following settings work fine:
+
+[source, as3]
+----
+var perlinData:BitmapData = new BitmapData(width, height, false);
+perlinData.perlinNoise(200, 12, 2, 0, true, true, 0, true);
+----
+
+The fifth parameter of the `perlinNoise` method is called `stitch`.
+Note that we set it to `true` -- this will become important in a minute.
+
+.Perlin noise textures can be created at runtime.
+image::reflection-perlin.png[Perlin Texture, 256, scaledwidth='256px']
+
+NOTE: The sophisticated process I used to arrive at suitable values is called "trial & error".
+
+Now we can create a _DisplacementMapFilter_ with our Perlin noise as `mapTexture`:
+
+[source, as3]
+----
+var mapTexture:Texture = Texture.fromBitmapData(perlinData);
+var filter:DisplacementMapFilter = new DisplacementMapFilter(
+    mapTexture, BitmapDataChannel.RED, BitmapDataChannel.RED, 15, 15);
+
+bottomSprite.filter = filter;
+----
+
+Here’s what all those parameters are:
+
+[horizontal]
+mapTexture:: The texture with our Perlin noise.
+componentX:: Displacement in x-direction is read from the `RED` channel.
+componentY:: Displacement in y-direction is read from the `RED` channel, too.
+scaleX:: Pixels are distorted up to 15 points horizontally.
+scaleY:: Pixels are distorted up to 15 points vertically.
+
+The _components_ decide which channel of the map texture is used for the distortion.
+In our case, the filter looks at the values of the red channel.
+Since our texture is black and white, though, it doesn't really matter which one we use.
+
+With that filter applied, the bottom sprite looks like this:
+
+.The bottom sprite with attached _DisplacementMapFilter_.
+image::reflection-distorted.png[Distorted Reflection, 256, scaledwidth='256px']
+
+==== Animating the Reflection
+
+Right now, this effect is purely static.
+In order to simulate a live, moving surface, we need to animate this reflection.
+How could we do that?
+
+The first thing that comes to mind: we could update the Perlin texture each frame, always slightly changing its parameters.
+That would work -- but it's very expensive; after all, we would need to create and upload a new texture in each and every frame.
+We clearly need a more efficient approach.
+
+If you review the _DisplacementMapFilter_ API, you'll find that it contains the properties `mapX` and `mapY`.
+Those parameters configure an offset for the map texture lookup.
+In other words, you can move the map texture to a different position relative to the filtered object.
+
+That's exactly what we need: by tweening `mapY` to a different value, we can slowly move the map texture downwards.
+In motion, the output will look just like the rising and falling waves of water.
+
+The problem, though, is that this animation can't go on forever.
+We can only move the map texture while it's still overlapping the target image.
+If we move it any further, the map texture will end, and there's no more distortion.
+
+That, however, can be solved with a neat little trick.
+
+In Stage3D (and Starling), a texture can be set up to repeat endlessly -- just like a wallpaper.
+When our map texture is configured like that, we will never run out of Perlin noise.
+
+Texture repeat does not work with all kinds of textures, though.
+You can only use this feature with textures that have side lengths that are powers of two (e.g. 256×128, 512×1024, etc).
+That's not really a problem in our case, since the Perlin texture is created dynamically, anyway.
+
+Let's move the generation of the map texture into a new method:
+
+[source, as3]
+----
+private function createMapTexture(minWidth:Number, minHeight:Number):Texture
+{
+    var width:Number  = MathUtil.getNextPowerOfTwo(minWidth); // <1>
+    var height:Number = MathUtil.getNextPowerOfTwo(minHeight);
+    var perlinData:BitmapData = new BitmapData(width, height, false);
+    perlinData.perlinNoise(200, 12, 2, 0, true, true, 0, true); // <2>
+    return Texture.fromBitmapData(perlinData, false, false, 1, "bgra", true); // <3>
+}
+----
+<1> For both width and height, we pick the next suitable powers of two.
+    For example, if the object is 400 pixels wide, the texture will have a width of 512 pixels.
+<2> The Perlin noise is created just like before, with `stitch` enabled.
+<3> This method call leaves all parameters at their default values -- except for last one: `forcePotTexture`.
+    This makes sure the texture is created with the specific "power-of-two" texture type.
+
+Since we enabled the `stitch` parameter when creating the Perlin texture, and since we created it as "power-of-two" texture, it can be seamlessly repeated.
+
+.The Perlin texture can be seamlessly repeated.
+image::reflection-repeat.png[Repeating Reflection, 512]
+
+With that method prepared, we can now instantiate the _DisplacementMapFilter_.
+
+[source, as3]
+----
+var map:Texture = createMapTexture(bottomSprite.width, bottomSprite.height);
+var filter:DisplacementMapFilter = new DisplacementMapFilter(
+        map, BitmapDataChannel.RED, BitmapDataChannel.RED, 15, 15);
+filter.mapRepeat = true; // <1>
+juggler.tween(filter, 5, { mapY: map.height, repeatCount: 0 }); // <2>
+bottomSprite.filter = filter;
+----
+<1> This is crucial: we need to tell the filter that the map texture should actually repeat.
+<2> The animation itself is a simple tween of `mapY`.
+    To make the tween repeat endlessly, we assign a `repeatCount` of zero.
+
+To make this a little clearer, think of the map texture as an endless ribbon that lines up one Perlin texture after the other.
+When you move that ribbon downwards, there is always another texture to replace the previous one.
+Our tween will reset after scrolling through just one texture, but we could also just raise `mapY` indefinitely; we will never run out of textures.
+
+.Endlessly animating the map texture.
+image::reflection-wrapping.png[Wrapping the Reflection Image]
+
+If you try that out now, you'll see that the animation does in fact loop seamlessly.
+However, one small flaw is remaining: the edges of the object are distorted, too.
+
+To get rid of that, we need to deactivate all padding on the filter.
+Per default, the _DisplacementMapFilter_ sets up `padding` high enough so that nothing gets clipped away.
+In our case, this clipping is actually what we want, so we undo that automatism.
+
+[source, as3]
+----
+filter.padding.setTo(); // <1>
+----
+<1> Sets the padding to zero in all directions.
+
+.With padding deactivated, the bounds of the object stay intact.
+image::reflection-padding.png[Deactivating Padding, 512]
+
+I think the outcome is pretty neat, especially considering that this effect is actually rather lightweight!
+After all, it's just the one `mapY` property that's animated in each frame.

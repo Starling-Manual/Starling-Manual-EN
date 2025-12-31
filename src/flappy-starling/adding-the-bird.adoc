@@ -1,0 +1,128 @@
+== Adding the Bird
+ifndef::imagesdir[:imagesdir: ../../img]
+
+It's a game about a bird, so let's finally add the hero to our game.
+Our assets contain three textures that illustrate a flapping red bird.
+That's all we need for a neat flapping animation.
+
+.The three frames of our bird movie.
+image::flappy/bird-animation.png[Bird Animation, 450, pdfwidth='9cm']
+
+Just like in classic animation movies, we will display those images in quick succession to create the illusion of movement.
+
+=== The MovieClip class
+
+To do that, we first create a _Vector of Textures_ that references the frames of our animation.
+
+[source, as3]
+----
+var birdTextures:Vector.<Texture> = Game.assets.getTextures("bird-");
+birdTextures.push(birdTextures[1]);
+----
+
+The textures we are looking for are named `bird-1`, `bird-2`, and `bird-3`.
+To get those textures from the _AssetManager_, the `getTextures` method comes in handy; it returns all textures with a name that starts with a given string (sorted alphabetically).
+The middle frame is supposed to be reused for the upward-movement of the wing, so I added another reference to that texture to the very end of the vector.
+
+To actually display those animation frames, let me introduce you to the _MovieClip_ class.
+It works very similar to an _Image_ (it extends that class), with the difference that it changes its texture over time.
+
+Let's try this out in our _World_ class.
+Make the following modifications:
+
+[source, as3]
+----
+private var _bird:MovieClip; // <1>
+
+public function World(width:Number, height:Number)
+{
+    /* ... */
+
+    addBackground();
+    addBird(); // <2>
+}
+
+private function addBird():void
+{
+    var birdTextures:Vector.<Texture> = Game.assets.getTextures("bird-");
+    birdTextures.push(birdTextures[1]);
+
+    _bird = new MovieClip(birdTextures); <3>
+    _bird.pivotX = 46; // <4>
+    _bird.pivotY = 45;
+    _bird.x = _width / 3; // <5>
+    _bird.y = _height / 2;
+
+    addChild(_bird);
+}
+----
+<1> Add a new member variable referencing the bird.
+<2> Add a new helper method that creates the bird.
+<3> Create the actual _MovieClip_.
+<4> Move the bird's pivot point to the center of its body (see below).
+<5> Move the bird itself to its starting point, a little left of the center of the screen.
+
+As you can see, the creation of the _MovieClip_ is quite straight-forward; you simply pass the _Vector_ of textures to its constructor.
+
+[IMPORTANT]
+.Pivot Points
+====
+The code also introduces the concept of _pivot points_.
+Per default, the origin of all display objects is at the top left (just as the stage's origin is at the top left).
+Via the `pivotX` and `pivotY` properties, you can move that origin (the pivot point) to a different location.
+
+Above, we are moving the pivot point to the center of the bird's body, which has two advantages:
+
+. Should we want to rotate the bird later, it will rotate around its center.
+. It will simplify the collision detection code we need to write a little later.
+====
+
+Run the project now to see the bird airborne!
+
+.The bird is in the air.
+image::flappy/bird-on-stage.png[Bird on the Stage, pdfwidth='6cm']
+
+Something seems to be wrong, though: there is no flapping animation, just a static image!
+
+That's because the _MovieClip_ doesn't have any information about the passage of time yet; and without that information, it will simply stick to the very first frame.
+
+In this case, we want to have full control over the bird's animation, so we will update it manually once per frame.
+Let's do this by adding the following method to the _World_ class:
+
+[source, as3]
+----
+public function advanceTime(passedTime:Number):void
+{
+    _bird.advanceTime(passedTime);
+}
+----
+
+The `advanceTime` method moves the playhead forward by the given time.
+Thus, we want this method to be called once per frame, and the `passedTime` parameter needs to contain the time passed since the previous frame.
+Sounds like a job for our _Game_ class, right?
+Open it up and add the following code:
+
+[source, as3]
+----
+public function start(assets:AssetManager):void
+{
+    /* ... */
+
+    addEventListener(Event.ENTER_FRAME, onEnterFrame);
+}
+
+private function onEnterFrame(event:Event, passedTime:Number):void
+{
+    _world.advanceTime(passedTime);
+}
+----
+
+This code introduces a concept that hasn't been mentioned before: events.
+We will look into that topic in detail a little later, but that code should be rather intuitive.
+We listen to an `ENTER_FRAME` event, which is a standard event that's dispatched once per frame to every display object.
+As a result, the method `onEnterFrame` (the event handler) will be called repeatedly.
+
+The event handler also contains an argument called `passedTime`, which is just what we need in the `advanceTime` method we just defined on _World_.
+
+Which means that everything is in place to get that bird flapping!
+Compile and run the code now to see it in action.

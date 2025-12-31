@@ -1,0 +1,65 @@
+=== Fun with Filters
+
+We just saw that the _FragmentFilter_ class can be used for selectively applying anti-aliasing to an object.
+Actually, for a class that doesn't seem to do _anything_ on first glance, there are a lot of creative ways to make use of it!
+I'd like to show you two more.
+
+==== CacheAsBitmap
+
+In the classic Flash display list API, the property `cacheAsBitmap` allows you to cache the internal bitmap representation of a display object.
+This can increase performance for display objects that contain complex vector content.
+
+Well, Starling does not provide much vector drawing capabilities, but there are still cases where it makes sense to replace a display object with a flat bitmap.
+For example, you might have a container that requires several draw calls, but changes only very rarely.
+By rendering the complete container into a texture, you can replace all those draw calls with a single one (rendering just the one texture).
+
+To achieve this, you could use a _RenderTexture_, alright.
+However, that would actually mean a lot of effort, and the underlying display objects wouldn't respond to touch events any longer.
+
+Instead, it's much easier to assign a _FragmentFilter_ instance to the object, with its `cache` enabled.
+
+[source, as3]
+----
+var object:Sprite = getComplexContent();
+object.filter = new FragmentFilter();
+object.filter.cache();
+----
+
+Different to `cacheAsBitmap`, the cache will remain completely unchanged even if objects within the container change.
+Its contents are only recreated when you call `cache()` again or change any filter settings.
+
+NOTE: Even if you don't call `cache()`, the filter will cache its output as long as the object and its parents do not change their position and orientation.
+
+==== BlendMode.LAYER
+
+It's quite frequent that an object is composed of lots of small elements.
+A _TextField_ that uses a bitmap font consists of numerous glyphs; a game character might consist of multiple limbs that are animated separately.
+
+If those elements overlap, something unexpected happens when you change the container's alpha value.
+Instead of becoming translucent as a whole, all the individual elements will become translucent individually.
+The effect is that you start to see each individual element of the container.
+
+The reason: when you change a container's alpha value, you're effectively just telling Starling that all its children must be rendered with that alpha.
+That's probably not what you wanted.
+
+In classic Flash, this could be solved by assigning a special blend mode: `LAYER`.
+That mode is not available in Starling; however, you can achieve the same result by different means.
+
+You probably already guessed it, right?
+Once again, we are pulling the _FragmentFilter_ class out of the hat.
+
+[source, as3]
+----
+var object:Sprite = getComplexContent();
+object.filter = new FragmentFilter();
+object.alpha = 0.7;
+----
+
+The picture below shows the difference the filter makes.
+On the left, you see the individual glyphs shining through; on the right, the object becomes translucent as a whole.
+
+.Adding a _FragmentFilter_ changes the effect of a container's translucency.
+image::blendmode-layer.png[BlendMode LAYER]
+
+NOTE: You can even combine this trick with the `cacheAsBitmap` alternative I introduced just a moment ago.
+That way, rendering the composed object becomes even cheaper.

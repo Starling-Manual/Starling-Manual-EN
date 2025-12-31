@@ -1,19 +1,30 @@
 require 'fileutils'
 
 REQUIREMENTS = "-r asciidoctor-diagram"
-MANUAL_INDEX = "src/index.adoc"
+INDEX_FILE = "src/index.adoc"
 OUT_FOLDER = "out"
+
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
 
 task :default => :build_html
 
-desc "Create the HTML manual"
+desc "Create a multi-page HTML version"
 task :build_html do
-  sh "asciidoctor -b html5 #{REQUIREMENTS} -D #{OUT_FOLDER} -o manual.html #{MANUAL_INDEX}"
+  sh "asciidoctor -r asciidoctor-multipage " +
+      "-b multipage_html5 #{REQUIREMENTS} " +
+      "-D #{OUT_FOLDER}/html -a data-uri " +
+      "-o index.html #{INDEX_FILE}"
 end
 
-desc "Create a PDF version of the manual"
+desc "Create a single-page HTML version"
+task :build_html_single do
+  sh "asciidoctor -b html5 #{REQUIREMENTS} -D #{OUT_FOLDER} -o manual.html #{INDEX_FILE} "
+end
+
+desc "Create a PDF version"
 task :build_pdf do
-  sh "asciidoctor-pdf #{REQUIREMENTS} -D #{OUT_FOLDER} -o manual.pdf #{MANUAL_INDEX}"
+  sh "asciidoctor-pdf #{REQUIREMENTS} -D #{OUT_FOLDER} -o manual.pdf #{INDEX_FILE}"
 end
 
 desc "Remove all output files"

@@ -1,0 +1,168 @@
+=== Flippable Images
+
+Before I started working full-time for my own company, I spent several years developing casual games for coin-operated gaming terminals.
+Believe me, I created my share of card games!
+
+A typical requirement in a card game: flipping cards around.
+Starling's _Sprite3D_ class is the perfect tool for this job, as it makes the cards literally pop out of the screen.
+It was created exactly with such simple effects in mind.
+
+To flip a _Sprite3D_ around, you simply animate `rotationX` or `rotationY`, like this:
+
+[source, as3]
+----
+juggler.tween(card, 1.0, { rotationY: Math.PI });
+----
+
+There is only one problem: the back of the card looks just like the front, except that it's mirrored.
+How can we change the way the card looks from behind?
+
+I will show you two ways to achieve this result; both are educational in their own way.
+
+.That's what we are after: an object turning around in three dimensions.
+image::flipping-image.png[Flipping Image]
+
+The first step, for both approaches, is to create a custom class that inherits from _Sprite3D_.
+Only a _Sprite3D_ can be rotated in a 3D space, so this shouldn't come as a surprise.
+It will contain both front and back side.
+
+[source, as3]
+----
+class Card3D extends Sprite
+{
+    private var _front:DisplayObject;
+    private var _back:DisplayObject;
+
+    public function Card3D(front:DisplayObject, back:DisplayObject)
+    {
+        _front = front;
+        _back = back;
+
+        _front.alignPivot(); // <1>
+        _back.alignPivot();
+
+        _back.scaleX = -1; // <2>
+
+        addChild(_front); // <3>
+        addChild(_back);
+    }
+}
+----
+<1> The cards should be rotated around the center, so we align the pivot points accordingly.
+<2> We don't want the back of the card to appear mirrored, so we flip it. The two flip operations will cancel each other out.
+<3> Both objects are added as children.
+
+That code is mostly straight-forward; the only thing that might come as a surprise is that the back side is flipped.
+When you think it through, though, it makes perfect sense: the back side must be facing in the opposite direction as the front.
+
+Now we need to decide which of the two sides is visible at any given moment.
+
+==== Approach 1: Visibility via Camera Position
+
+In the first approach, we are using the relative camera position to find out if the card is viewed from above or below.
+Make the following changes to the _Card3D_ class:
+
+[source, as3]
+----
+public function Card3D(front:DisplayObject, back:DisplayObject)
+{
+    /* ... */
+
+    addEventListener(Event.ENTER_FRAME, updateVisibility); // <1>
+}
+
+private function updateVisibility():void
+{
+    var cameraPos:Vector3D = Pool.getPoint3D(); // <2>
+    stage.getCameraPosition(this, cameraPos);   // <3>
+
+    _front.visible = cameraPos.z <  0; // <4>
+    _back.visible  = cameraPos.z >= 0;
+
+    Pool.putPoint3D(cameraPos); // <5>
+}
+
+----
+<1> The visibility is updated each frame in which the object is part of the display list.
+<2> To avoid any temporary allocations, the _Vector3D_ instance storing the camera position is taken from Starling's object pool.
+<3> This method calculates the current camera position within the local (!) coordinate system.
+<4> The z-coordinate tells us if we are looking at the card from above or below.
+<5> The temporary vector must be put back into the pool.
+
+The `updateVisibility` method is where the actual magic is happening.
+It uses the stage method `getCameraPosition` to find out where the camera is located within the local coordinate system.
+In Starling, the z-axis points _away_ from the camera (into the screen), so a negative z-coordinate means we are looking at the front of the card.
+It's as simple as that!
+
+The downside of this approach is that the calculation is executed each and every frame, even if the card is not actually moving.
+Since the calculation is not _that_ expensive, we will probably get away with that, though.
+
+Still, let's find out if the alternative approach is more efficient!
+
+[NOTE]
+.Adding and Removing an Event Listener
+====
+In the code above, we added a listener for the `ENTER_FRAME` event, but we're not actually removing that listener later.
+Shouldn't that be done in an overridden `dispose` method?
+
+No, in this case, this is not necessary.
+That's because the event listener is added to `this`.
+The implementation of `dispose` in the base class (_EventDispatcher_) takes care of cleaning up those listeners.
+
+Had the event been added to a different object instead (e.g. the _stage_), it would have been crucial to remove it later.
+Otherwise, the reference to the event handler would stay in memory until that object is disposed.
+In the case of the stage, this won't happen until the app itself is shut down.
+====
+
+==== Approach 2: Visibility via Back-face Culling
+
+The render pipelines of APIs like _Stage3D_ and _OpenGL_ were designed mainly with 3D graphics in mind.
+Many of the optimizations available for 3D graphics don't make much sense in Starling's typical 2D scenes, so they lie idle.
+In this case, though, we are actually working with a 3D object -- so we can put one of those optimizations to good use!
+
+I'm talking about _Back-face Culling_.
+
+Typically, a polygon is always seen from the same side.
+Picture a cube before your inner eye: at any given moment, you will only see three (or less) of its side walls.
+Visible are only those you are facing from the _outside_.
+
+Graphics pipelines make use of this: a polygon that's seen from the wrong side doesn't need to be rendered at all.
+In Starling, this optimization is deactivated; in general, when you flip an image horizontally, you still want to see it.
+Not so in this case, though!
+
+If we enable back-face culling for our _Card3D_ class, the GPU will take care of making only the correct side visible.
+We already flipped the back side of the card (in the constructor), so it's facing in the opposite direction as the front.
+All that's left to do is configuring _Stage3D_ for culling.
+
+To do that, override the `render` method:
+
+[source, as3]
+----
+override public function render(painter:Painter):void
+{
+    painter.pushState(); // <1>
+    painter.state.culling = Context3DTriangleFace.BACK; // <2>
+
+    super.render(painter); // <3>
+
+    painter.popState(); // <4>
+}
+----
+<1> This call stores the current _render state_ (read: _Stage3D_ settings) so it can be restored later.
+<2> We change the `culling` setting of the _render state_ so that objects viewed from the back side become invisible.
+<3> The actual rendering is best handled by the super class.
+<4> We restore the original _render state_. Most likely, this will also force an immediate draw call.
+
+Since culling is done by the GPU, this is extremely efficient.
+
+[WARNING]
+====
+Still, I need to mention one downside of this solution.
+Normally, _Sprite3D_ objects that do not contain any 3D transformations (i.e. `rotationX/Y` and `z` are all zero) can be batched together.
+Unfortunately, the `render` method we just wrote prohibits that.
+Since it manipulates the state, each card will require a draw call, even if it's just lying flat (2D).
+
+To fix this, we need to implement culling not on a per-card basis, but further up the display list, e.g. on the container that manages the cards.
+Overwrite the `render` method in that container, and all cards will inherit the culling.
+Within the container, batching will then work just like before.
+====

@@ -1,0 +1,70 @@
+= Pro Tips
+
+Now that you know every nut, bolt and screw of the Starling API, I'd like to give you a taste of what can be achieved if it's used the right way.
+What follows is a number of cookbook-like recipes that may help you out in different situations.
+I also threw in a few tips that apply to Flash and ActionScript in general.
+In short, there should be something for everybody!
+
+NOTE: I set up a small project with working samples of most of these recipes.
+Find it on https://github.com/Gamua/Starling-Recipes[GitHub].
+
+== ActionScript 3
+
+include::byte-arrays.adoc[]
+
+== Display Objects
+
+include::touch-gestures.adoc[]
+
+include::anti-aliasing-strategies.adoc[]
+
+include::fun-with-filters.adoc[]
+
+include::fast-tilemaps.adoc[]
+
+== Textures
+
+include::tilemap-glitches.adoc[]
+
+include::asynchronous-loading.adoc[]
+
+include::runtime-compression.adoc[]
+
+include::custom-asset-types.adoc[]
+
+== Visual Effects
+
+include::animating-text.adoc[]
+
+include::water-reflection.adoc[]
+
+include::pixelation.adoc[]
+
+include::outline.adoc[]
+
+include::flippable-images.adoc[]
+
+== Miscellaneous
+
+For this section, I compiled a list of other small tips and tricks that don't quite warrant putting them into their own chapters.
+Read on to find some real gems!
+
+include::misc.adoc[]
+
+== Summary
+
+This chapter described lots of different ways to make use of the Starling and ActionScript APIs in creative or surprising ways.
+You learned
+
+* about the memory pitfalls coming with the _ByteArray_ API, as well as how to use it as a _StringBuilder_.
+* how best to embed an SWF file in a website.
+* how to recognize the most important multi-touch gestures.
+* that the _FragmentFilter_ class can be used to replace `cacheAsBitmap` and `BlendMode.LAYER`, and to apply selective anti-aliasing.
+* that the _MeshBatch_ provides the fastest way to render a massive number of tiles and ...
+* ... how to avoid the problems that arise in the process.
+* that you can load textures asynchronously to keep your app responsive.
+* how to squeeze more textures into memory by compressing them at runtime.
+* several neat visual effects that utilize some of Starling's standard features.
+
+I must say I really enjoyed writing this chapter, as it puts all different parts of Starling to good use.
+I hope some of my excitement carried over to you!

@@ -1,0 +1,148 @@
+=== Byte Arrays
+
+The _ByteArray_ class represents one of the lower level APIs available within the ActionScript core libraries.
+It allows to store data in a very efficient way, with total control over the actual bits of memory.
+
+When working with the _Stage3D_ API, this efficiency is very important.
+For example, the fastest way to upload data to the GPU is via byte arrays; thus, you'll find them very often within the Starling source code.
+
+If you have never used them before, here is a simple example.
+We are storing a couple of values and retrieving them afterwards:
+
+[source, as3]
+----
+var byteArray:ByteArray = new ByteArray();
+
+byteArray.writeInt(1);
+byteArray.writeInt(2);
+byteArray.writeInt(3);
+
+trace(byteArray.length); // => 12 (3 × 4 bytes)
+byteArray.position = 0;
+
+trace(byteArray.readInt()); // => 1
+trace(byteArray.readInt()); // => 2
+trace(byteArray.readInt()); // => 3
+----
+
+You might have worked with _streams_ in other programming languages; the _ByteArray_ class works similar to those.
+There is a pointer to the current `position`, and whenever you read or write data, that pointer moves according to the data type.
+It's your own responsibility not to read beyond the array's current length.
+
+Of course, for a simple list of numbers, we could also simply use an _Array_ or a _Vector_.
+However, byte arrays have some advantages:
+
+* The data types are finer grained, e.g. you can choose between 8, 16, and 32 bit integers, as well as 32 or 64 bit floats.
+* You can mix types, e.g. store integers, floats and Strings in sequence.
+* You can easily write byte arrays to disk and reload them later.
+* If used correctly, the storage overhead is very small.
+
+Thus, the class can be really useful in some situations.
+However, if the main reason to use it is to save memory, you need to be really careful: its memory management strategy is rather non-intuitive.
+
+==== Memory Pitfalls
+
+When you set the `length` of a byte array, it will adhere to that: an array with length `12` will take up 12 bytes (plus some overhead).
+When you write beyond that length, the byte array will automatically expand to be able to provide enough space.
+This is an important and useful feature -- and at first glance, it seems to work just as one would expect.
+
+[source, as3]
+----
+var byteArray:ByteArray = new ByteArray();
+byteArray.length = 12;
+
+byteArray.writeInt(1); // length = 12
+byteArray.writeInt(2); // length = 12
+byteArray.writeInt(3); // length = 12
+byteArray.writeInt(4); // length = 16
+----
+
+One integer takes up 4 bytes, so that's all just as one would expect.
+When writing the last integer, the array is automatically extended by 4 bytes.
+
+Or is it?
+Let's look at the memory consumption instead of the `length`.
+(For clarity, I subtracted the constant memory overhead of the byte array from the values below.)
+
+[source, as3]
+----
+var byteArray:ByteArray = new ByteArray();
+byteArray.length = 12;
+
+byteArray.writeInt(1); // getSize(byteArray) = 12
+byteArray.writeInt(2); // getSize(byteArray) = 12
+byteArray.writeInt(3); // getSize(byteArray) = 12
+byteArray.writeInt(4); // getSize(byteArray) = 4096
+----
+
+Wow, what just happened?
+The byte array suddenly uses a whopping 4 kB of memory!
+What did we do wrong?
+
+In fact, we didn't do anything wrong.
+That's just the way byte arrays are implemented!
+The first time you set the `length` property, the runtime will allocate exactly the required memory.
+Any subsequent growth (be it manual or automatic) will inflate it to at least 4 kB.
+
+WARNING: It's really exactly the first `length` assignment that counts.
+If you first assign a length of `12` and then a length of `13`, you will already run into the 4 kB inflation.
+
+The only way to "fix" an inflated byte array is by calling its `clear` method.
+This will reset the memory and give you a fresh start.
+
+This doesn't mean that byte arrays are bad -- it just means that you need to be a little careful when using them:
+
+* Make sure to assign a large enough `length` at the beginning. Be generous, for once!
+* Consider reusing the same byte array multiple times, maybe via some kind of pool.
+* When you do not need the byte array any longer, call `clear` to free the allocated memory.
+
+==== Byte Arrays as String Builders
+
+Besides numbers, one of the most used data types we developers are constantly working with is the _String_ class.
+It's a very common operation to build a string from several elements, e.g. to set up a status _TextField_ with the player's current stats.
+
+Compared to many other classes of the _ActionScript API_, the _String_ class is a little peculiar: it is immutable.
+This means that, once created, a string can never be modified in any way.
+For example, the following code might behave different to what you would expect:
+
+[source, as3]
+----
+var string:String = "";
+
+for (var i:int=0; i<100; ++i)
+    string += "x";
+----
+
+It looks as if there is just one _String_ instance that is continuously growing.
+In reality, though, this code creates 101 strings; each `+=` operation returns a new one.
+
+    "", "x", "xx", "xxx", "xxxx", "xxxxx", etc.
+
+In most cases, this is not tragic; the garbage collector can handle a few temporary objects.
+But when you are working on an application that's really heavily relying on text manipulation, this might turn into a problem.
+
+In many other standard APIs, you will thus find a _StringBuilder_ class that helps to avoid this issue.
+In _ActionScript_, however, you won't find a class with that name.
+
+Don't despair, though: the _ByteArray_ class can handle that job!
+The following code achieves the same result as the previous sample, but without creating any temporary objects.
+
+[source, as3]
+----
+const LENGTH:int = 100;
+
+var byteArray:ByteArray = new ByteArray();
+byteArray.length = LENGTH; // <1>
+
+for (var i:int=0; i<LENGTH; ++i)
+    byteArray.writeUTFBytes("x"); // <2>
+
+byteArray.position = 0;
+trace(byteArray.readUTFBytes(LENGTH)); // <3>
+----
+<1> This is optional, but helps save memory (as demonstrated before).
+<2> Instead of creating lots of temporary objects, the contents is written into just one byte array.
+<3> Finally, to access the contents, reset the position and call `readUTFBytes`.
+
+Don't overuse this technique; for building just a few short strings here and there, it's definitely overkill.
+But in some scenarios, it can be worth the effort!

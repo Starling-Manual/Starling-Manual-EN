@@ -1,0 +1,103 @@
+=== Anti-Aliasing Strategies
+
+Aliasing is one of those annoying topics that always pop up once in a while when you deal with computer graphics.
+Shapes with mathematically exact bounds need to be approximated with the limited numbers of pixels on a computer screen -- and that leads to jagged edges.
+
+The problem has become less pressing in recent years, though, since the density of today's screens has reached a very high level (especially on mobile).
+For some reason, however, the big screens of desktop computers follow suit only very slowly.
+Thus, it's still important to be familiar with some strategies around this issue.
+
+As a Starling user, you have several options.
+
+==== Full-screen Anti-Aliasing
+
+The most straight-forward approach: activate `antiAliasing` on the Starling instance.
+
+[source, as3]
+----
+starling.antiAliasing = 2;
+----
+
+This will make Stage3D render a number of sub-samples for each pixel; the average of these sub-samples is then drawn to the back buffer.
+The following table shows the number of sub-samples produces by each possible `antiAliasing` value:
+
+[cols="1,8"]
+|===
+|Value |Effect
+
+|0
+|No Anti-Aliasing (the default).
+
+|1
+|2 subsamples; minimal anti-aliasing.
+
+|2
+|4 subsamples; decent anti-aliasing.
+
+|3
+|8 subsamples; high-quality anti-aliasing. Only available on desktop.
+
+|4
+|16 subsamples: very high-quality anti-aliasing. Only available on desktop.
+|===
+
+As you can see, values of `3` and `4` are currently only supported on desktop.
+That shouldn't be any cause for concern, though; a value of `2` is totally sufficient for most use-cases.
+
+.Anti-Aliasing can smooth pixelated edges.
+image::anti-aliasing.png[Anti-Aliasing, 380, pdfwidth='7.5cm', scaledwidth='380px']
+
+A bigger limitation is that, among mobile systems, full-screen anti-aliasing is currently only available on iOS (using AIR 24 and above).
+At the time of this writing, any anti-aliasing settings are completely ignored on Android.
+
+But don't despair: there is an alternative.
+The _Stage3D_ API allows you to activate anti-aliasing on _RenderTextures_ instead.
+In this context, it works on all platforms (starting with AIR 22).
+As we will learn next, it is very easy to take advantage of that in Starling.
+
+==== Selective Anti-Aliasing
+
+The full-screen approach I just described is not always optimal.
+We just heard that it's currently not available on Android; furthermore, it's extremely expensive.
+To calculate four subsamples, the GPU has to render four times as many pixels -- that will push many mobile devices beyond their limits.
+
+So it might be smarter to enable anti-aliasing only for specific display objects.
+For example, if most of the display objects with aliasing issues are part of just one sprite, why enable sub-sampling for the complete screen?
+Instead, focus your efforts on just this sprite by making use of Starling's _FragmentFilter_ class.
+
+[source, as3]
+----
+sprite.filter = new FragmentFilter();
+sprite.filter.antiAliasing = 2;
+----
+
+That's all you need to do!
+
+The _FragmentFilter_ class seems rather useless on first glance.
+Being the base class of all filters, it just renders a display object into a texture without modifying it.
+In this specific case, this is exactly what we need!
+The class will automatically handle all the elaborate "render-to-texture" stuff for us, including anti-aliasing.
+
+Yes, you could also do that manually with the help of a _RenderTexture_, but the filter is much easier to use.
+Besides, since filters are highly optimized, that approach is even more efficient.
+
+==== Anti-Aliasing via Linear Sampling
+
+You might have run into this problem: you rotate an _Image_ or _Quad_ just slightly, and suddenly the edges become extremely jagged.
+However -- did you notice? -- inside the image, the texture is not jagged at all.
+Why is that?
+
+By default, when sampling a texture, the GPU calculates the weighted average of the four pixels surrounding the exact coordinates you are looking up.
+That's why an image becomes blurry (not pixelated) when you scale it by a big factor.
+Since GPUs are doing texture lookups so often, they are extremely efficient at it.
+We can make use of that!
+
+The solution is really simple: we extend the texture slightly so that it is surrounded by a small transparent border.
+Now, suddenly, the edge is processed via linear sampling, as well -- and the jagged pixels are smoothed out.
+This is, hands down, the cheapest way to fight aliasing!
+
+.Letting the texture sampler take care of anti-aliasing.
+image::anti-aliasing-via-sampling.png[Anti-Aliasing via sampling, 400, scaledwidth='400px']
+
+CAUTION: Some texture atlas generators will detect transparent borders around textures and crop them away to save texture memory.
+Make sure that this does not happen for any textures you have deliberately equipped with such a border.

@@ -1,0 +1,150 @@
+=== Pixelation
+
+Are there any Super Mario fans around?
+I've been fascinated with this game series since I was a child.
+I must have spent hundreds of hours in the Mushroom Kingdom; I don't think I skipped any of the major games.
+
+The first time I played "Super Mario World" on the _Super NES_, with its huge, colorful sprites and bold sound effects -- that was probably one of the defining moments leading to my current career.
+In general, the _Super NES_ featured special effects that were ahead of its time.
+For example, there was a particular type of transition: the complete screen became gradually pixelated and normal again, concealing an underlying change of the scenery.
+
+When I recently saw that again, I wondered: can this effect be reproduced in Starling?
+That's what we are going to try in this section.
+
+Here's the battle plan:
+
+* Render a display object into a texture.
+* Gradually lower the resolution until the pixels are really big.
+* At that moment, change the contents of the display object.
+* Gradually enhance the resolution until it's back to normal.
+
+Whenever you read "render a display object into a texture", a bell should start ringing in your head, reminding you of the _FragmentFilter_ class.
+That kind of task is exactly what filters are doing very efficiently.
+Actually, we already used them for rendering in a very _high_ resolution (see <<Anti-Aliasing Strategies>>); now we are going to do the opposite: rendering in a very _low_ resolution.
+
+The `resolution` into which a _FragmentFilter_ renders the filtered object is determined by a property with the same name.
+A value of `1` will use the full pixel density of the screen; a value of `0.5` just half of that, etc.
+That property is the key to making this effect possible.
+
+As a first test, assign a _FragmentFilter_ to a display object and animate its `resolution` property.
+Like this:
+
+[source, as3]
+----
+object.filter = new FragmentFilter(); // <1>
+object.filter.textureSmoothing = TextureSmoothing.NONE; // <2>
+juggler.tween(object.filter, 0.5, {
+    resolution: 0.05, // <3>
+    repeatCount: 2, // <4>
+    reverse: true // <5>
+});
+----
+<1> Create a new _FragmentFilter_ instance and assign it to the display object.
+<2> To get the pixelated style, we need to turn off any texture smoothing.
+<3> A resolution of 0.05 will yield a maximum pixel size of 20 (1 / 0.05).
+<4> Create an "up-and-down" animation by repeating the tween two times and ...
+<5> ... reversing the second repetition.
+
+That works, but somehow it doesn't look all that great in practice.
+Somehow, the animation spends too much time with small pixels and shows big pixels only very briefly.
+
+We can mitigate that by changing the transition type.
+Add the following key-value pair to the tween setup:
+
+[source, as3]
+----
+transition: Transitions.EASE_OUT
+----
+
+That's much better!
+
+Granted: this is not a real transition yet -- we just temporarily altered the appearance of an object.
+What we actually need to do is change the object halfway through the animation (when the pixels are biggest).
+Furthermore, when the transition is finished, we need to remove and dispose the filter.
+
+That's easily done via the callbacks offered by the `Tween` class.
+
+[source, as3]
+----
+// add another set of tween properties
+onRepeat:   changeContents,      // <1>
+onComplete: onTransitionComplete // <2>
+
+private function changeContents():void
+{
+    // do whatever needs to be done
+    object.changeContents();
+}
+
+private function onTransitionComplete():void
+{
+    object.filter.dispose();
+    object.filter = null;
+}
+----
+<1> Called just before the tween repeats (in reverse).
+<2> Called at the very end of the animation.
+
+That does the trick!
+
+.Our Pixelation effect in action.
+image::pixelation.png[Pixelation]
+
+==== Changing the Animation Steps
+
+That's already looking quite nice, but I'm not 100% content yet.
+Somehow, the animation feels a little bumpy, don't you think?
+
+What I'd actually like to see is that pixel sizes change in a more orderly manner.
+For example, we could try doubling the pixel size in each animation step (1, 2, 4, 8, etc).
+
+One way of doing that is by extending the _FragmentFilter_ class and adding a property that describes the resolution in these terms.
+
+[source, as3]
+----
+class PixelationFilter extends FragmentFilter
+{
+    public function set level(value:int):void
+    {
+        resolution = 1 / (Math.pow(2, value)); // <1>
+    }
+
+    public function get level():int
+    {
+        return Math.log(1 / resolution) / Math.log(2); // <2>
+    }
+}
+----
+<1> The `level` property sets the pixels size to `2` to the power of `level`.
+<2> The binary logarithm converts `resolution` back to `level`.
+
+That code actually does not add any real new functionality; it just provides a different way of changing the resolution: an integer that doubles the pixel size in each step.
+Animating this new property will yield the result we are looking for.
+
+[source, as3]
+----
+object.filter = new PixelationFilter();
+
+juggler.tween(object.filter, 0.5, {
+    level: 6.5,
+    repeatCount: 2,
+    reverse: true,
+    onRepeat: changeContents,
+    onComplete: onTransitionComplete
+});
+----
+
+Personally, I like the result of that updated transition better than the old one.
+However, that's probably a matter of taste.
+
+Either way, what you can take away from this section is the following:
+the style of an animation can sometimes be modified by creating a different representation of the property being animated.
+
+[NOTE]
+====
+Note that I set the level to `6.5` in the tween.
+If I had used `6.0`, the final step of the animation (`level == 6.0`) would have been shown very very briefly,  or not at all.
+By setting it to `6.5`, it animates from `6.0` up to `6.5` and then back to `6.0` -- which takes exactly the same time as the other steps (e.g from `5.0` to `6.0`).
+
+Yes, you can officially call me a nitpicker!
+====

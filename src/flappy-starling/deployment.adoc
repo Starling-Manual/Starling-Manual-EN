@@ -1,0 +1,89 @@
+== Deployment
+
+After all this hard work, it's time to show off what we just achieved!
+You need to publish _Flappy Starling_ on a web page so that your friends and colleagues can finally admire the new hit game you just created.
+
+=== Creating the Release SWF
+
+Up until now, we only compiled in debug mode, i.e. we created a non-optimized SWF file including debug information.
+That's super useful in the development phase, but not what you want for the actual release.
+
+Whenever you want to test the performance of a game, or if you want to release it to the public, it's important to make a release build.
+When using Starling, it makes a *massive* difference if a project is compiled in debug or release mode.
+Don't draw any conclusions about performance if you are not running the code with the optimal settings and in the optimal environment!
+
+IMPORTANT: For Web projects (SWF), it's also important to always run them in the release version of the _Flash Player_.
+
+Unfortunately, creating a release build is different in each IDE you use.
+Make sure to familiarize yourself with the process.
+
+* For AIR apps, there is typically a special export menu that lets you package a project in release mode.
+* For SWF apps, it's often enough to simply deactivate the option that controls if debug information is to be included in the output.
+
+NOTE: The Starling Wiki contains detailed information about how this is done in each major IDE: http://wiki.starling-framework.org/manual/start[Project Setup].
+
+=== Embedding the SWF in a Website
+
+In the past, embedding Flash content inside a website could prove surprisingly difficult.
+Different browsers preferred different HTML elements and attributes; you needed to check if the user has a sufficient version of the Flash plugin installed, etc.
+Thus, most Flash developers used the JavaScript library https://github.com/swfobject/swfobject[SwfObject] to work around these issues.
+
+Today, the process has thankfully become a little easier; modern browsers essentially all support the `object` element to embed Flash content.
+Thus, I'm typically favoring that simple approach nowadays.
+
+Let's start with a basic HTML5 scaffold:
+
+[source, html]
+----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Flappy Starling</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <!-- TODO -->
+</body>
+</html>
+----
+
+In the `body` element, embed the SWF file like this:
+
+[source, html]
+----
+<object type="application/x-shockwave-flash" data="flappy-starling.swf"
+        name="flappy-starling" id="flappy-starling"
+        width="320" height="480">
+  <param name="wmode" value="direct"/>
+  <a href="http://www.adobe.com/go/getflash">
+    <img src="flappy-starling-alt.png" alt="Get Adobe Flash player"/>
+  </a>
+</object>
+----
+
+* We are passing the same values for `width` and `height` as are defined in the project's startup class (`FlappyStarling.as`).
+* The `wmode` parameter is important for all Starling content: it basically enables _Stage3D_ support.
+* As fallback content, I added an image that links to the Flash Player download page.
+
+Save this file as `index.html` and store it in the same directory as the SWF file.
+You can now copy it to a web server or launch it right from your local disk.
+
+.The fruits of our hard labor: Flappy Starling running in the browser.
+image::flappy/browser-embed.png[Game in browser]
+
+=== Mobile Version
+
+While all the code we wrote so far was targeting the Flash plugin, it's actually not much work to adapt the game for mobile devices.
+All the essential game code stays exactly the same; only the startup phase (when Starling is initialized and the assets are loaded) needs to be changed.
+Now it pays off that we didn't hard-code any positions, but placed all objects relative to the stage size!
+
+The main challenge of the mobile version is that most mobile screens have a much higher pixel density than typical desktop screens.
+For this reason, I prepared high resolution versions of all the game's textures.
+
+Depending on the device the game is running on, we need to load the correct set of textures.
+Furthermore, instead of embedding all the assets, the mobile version will load them from the disk.
+That way, only the assets we really need will end up in memory.
+
+We will look in detail at how all this is done in the <<Mobile Development>> chapter.
+If you can't wait any longer, though, simply check out the head revision of the _Flappy Starling_ project on GitHub.
+It contains a new build target for mobile devices (_iOS_ and _Android_).

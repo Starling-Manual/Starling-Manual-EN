@@ -1,0 +1,175 @@
+== Collision Detection
+
+We made a lot of progress in the previous section.
+The obstacles move correctly along the screen -- the bird just doesn't collide with them yet.
+Which is actually the whole point of them, right?
+So let's implement the collision detection code.
+
+Open up the _Obstacle_ class again; we need to add a new method.
+For now, just add the following stub:
+
+[source, as3]
+----
+public function collidesWithBird(
+    birdX:Number, birdY:Number, birdRadius:Number):Boolean
+{
+    return false;
+}
+----
+
+The parameters of this method already tell something about how I'd like it to work.
+It receives the current position of the bird (in _World_ coordinates), as well es the radius of its body.
+With this information, we can find out if the bird is currently overlapping one of the trunks (return value: `true`), or if it isn't (return value: `false`).
+
+As for the actual implementation, we are going to use a three-step approach.
+
+.We check for collisions in three steps.
+image::flappy/collisions.png[Collision Detection, 500]
+
+First, notice that the bird itself is represented by a simple circle; wings and feet are not taken into account.
+This makes the whole collision test much easier -- and a too pedantic collision detection would be quite frustrating for the player, anyway.
+
+The three steps are discussed below.
+
+=== Step 1: Horizontal Position
+
+The first step: check if the bird overlaps the vertical stripe made up by the obstacle, at all.
+
+[source, as3]
+----
+// check if bird is completely left or right of the obstacle
+if (birdX + birdRadius < x - _radius || birdX - birdRadius > x + _radius)
+    return false;
+----
+
+Remember, we centered the trunk images horizontally in the coordinate system of the _Obstacle_ class.
+Furthermore, the bird's pivot point is exactly at the center of its circular body.
+This pays off now: it allows us to directly use bird and obstacle coordinates for our checks.
+
+We just subtract (or add) the radius from the current `x` coordinate of the obstacle to get to the left (or right) bounds.
+If the bird is outside this range, there cannot possibly be any collision with this obstacle, so we exit the method right away.
+
+=== Step 2: Vertical Position
+
+If the method is executed further, we know that the bird is horizontally within the obstacle bounds.
+This means that if the bird is too far up or down (above or below the semi-circular end pieces), there must be a collision.
+
+[source, as3]
+----
+var topY:Number = y - _gapHeight / 2;
+var bottomY:Number = y + _gapHeight / 2;
+
+// check if bird is within gap
+if (birdY < topY || birdY > bottomY)
+    return true;
+----
+
+On the other hand, if the bird is vertically in-between those two areas, we need to proceed to the final step.
+
+=== Step 3: Intersecting Circles
+
+Both the bird and the end pieces of the obstacle trunks are circular.
+The final step is to test if those circles intersect one another.
+Thankfully, the math to test if two circles intersect is rather simple:
+
+1. Create a vector connecting the two center points.
+2. If the length of this vector is smaller than the sum of the two radii, the circles intersect.
+
+A little geometry reminder: to calculate the distance vector between two points A and B, you simply subtract the coordinates of A from B:
+
+// AsciiDoctor can actually create math formulas inline, but I didn't manage to get that to work when compiling to PDF.
+// Thus, I used the following website to create the vectors using LateX: http://www.codecogs.com/latex/eqneditor.php
+
+image::eq-vector-a-to-b.svg[width="150px", pdfwidth="3cm", scaledwidth="150px"]
+
+// Stem notation:
+// vec(d) = ((B_x - A_x),(B_y - A_y))
+// LateX notation:
+// \vec{d} = \binom{B_x - A_x}{B_y - A_y})
+
+To get the length of this vector, good old Pythagoras comes to the rescue:
+
+image::eq-vector-length.svg[width="145px", pdfwidth="2.9cm", scaledwidth="145px"]
+
+// Stem notation:
+// |vec(d)| = sqrt(d_x^2 + d_y^2)
+// LateX notation:
+// |\vec{d}| = \sqrt{d_x^{\,2} + d_y^{\,2}}
+
+We already know the center of the bird circle (`birdX` and `birdY`) and the positions of the end pieces (`x` and `topY` / `bottomY`).
+The remaining code simply needs to insert those values into the formulas from above.
+
+[source, as3]
+----
+var distX:Number = x - birdX;
+var distY:Number;
+
+// top trunk
+distY = topY - birdY;
+if (Math.sqrt(distX * distX + distY * distY) < _radius + birdRadius)
+    return true;
+
+// bottom trunk
+distY = bottomY - birdY;
+if (Math.sqrt(distX * distX + distY * distY) < _radius + birdRadius)
+    return true;
+
+// bird flies through in-between the circles
+return false;
+----
+
+That's it!
+Our collision detection method is finished.
+Since it's not called from anywhere yet, though, there is no change in gameplay yet.
+
+We already have a method called `checkForCollisions` in the _World_ class.
+Right now, it only checks if the bird hits the ground, but it was always destined for more!
+With the collision detection code prepared, it's just a matter of iterating over our obstacles and testing each of them.
+
+[source, as3]
+----
+if (_bird.y > bottom)
+{
+    /* ... */
+}
+else
+{
+    for (var i:int=0; i < _obstacles.numChildren; ++i) // <1>
+    {
+        var obstacle:Obstacle = _obstacles.getChildAt(i) as Obstacle;
+
+        if (obstacle.collidesWithBird(_bird.x, _bird.y, BIRD_RADIUS)) // <2>
+        {
+            collision = true; // <3>
+            break;
+        }
+    }
+}
+----
+<1> Iterate over all obstacles.
+<2> Check if the bird collides with this specific obstacle.
+<3> The `collision` variable is checked at the end of the method.
+    If `true`, the game will switch into the `CRASHED` phase.
+
+Now that was easy, wasn't it?
+If you give the game a try now, you can reap the benefits of our hard work.
+The basic gameplay mechanisms are all in place!
+
+Before we move on, I'd like to take care of one more thing, though.
+In the same method (`checkForCollisions`), please add the following code into the for loop (somewhere after assigning the `obstacle` variable).
+
+[source, as3]
+----
+if (!obstacle.passed && _bird.x > obstacle.x)
+{
+    obstacle.passed = true;
+    dispatchEventWith(OBSTACLE_PASSED, true);
+}
+----
+
+The player's score is going to be measured by the number of obstacles he manages to pass.
+The _Game_ class is supposed to take care of that -- so it needs to be notified whenever we pass an obstacle.
+That's best done by dispatching an appropriate event.
+
+In order to not count one obstacle twice, we are also enabling the `passed` property.
+If you wondered all along what that property was for, here is your answer!

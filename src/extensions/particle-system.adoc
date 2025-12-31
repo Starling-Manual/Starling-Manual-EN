@@ -1,0 +1,50 @@
+== Particle System
+
+Particle systems can be used to create special effects like explosions, smoke, snow, fire, etc.
+To provide that flexibility, they can be configured with numerous settings that control particle movement, size, color, etc.
+
+[NOTE]
+====
+This was actually the very first extension I created for Starling.
+What's so nice about particle systems is that you can achieve fascinating results really quickly.
+The first demos of Starling always included some particle system shenanigans.
+====
+
+Finding the perfect settings for a particle effect is not easy.
+For that reason, there are tools that allow you to modify the settings and preview the resulting particle system in real time.
+
+Particle Editor::   A free online tool from _onebyonedesign_, built right with Starling!
+                    To try it out, just head to http://onebyonedesign.com/flash/particleeditor/[onebyonedesign.com].
+Particle Designer:: The original from _71squared_, coming with a large online library of sample emitters.
+                    Warmly recommended for any _macOS_ user! Get it on https://71squared.com/particledesigner[71squared.com].
+
+.The Particle Designer from _71squared_.
+image::particle-designer.png[Particle Designer, 550]
+
+Each tool allows you to export a texture and a `.pex` file, the latter containing the settings of the particle system.
+Let the _AssetManager_ take care of this data.
+The extension itself provides a display object that is set up with these resources.
+
+[source, as3]
+----
+var psConfig:XML = assets.getXml("particle-system");
+var psTexture:Texture = assets.getTexture("particle");
+
+var ps:PDParticleSystem = new PDParticleSystem(psConfig, psTexture); // <1>
+ps.x = 160;
+ps.y = 240;
+
+addChild(ps); // <2>
+Starling.juggler.add(ps);
+
+ps.emitterX = 20; // <3>
+ps.emitterY = 40;
+
+ps.start(); // <4>
+ps.stop();
+----
+<1> Create the particle system and move it to the desired location.
+<2> As any animated display object, it needs to be added to both display list and juggler.
+<3> The `emitter` coordinates define where the particles are emitted.
+<4> The methods `start` and `stop` turn the emitter on and off, respectively.
+

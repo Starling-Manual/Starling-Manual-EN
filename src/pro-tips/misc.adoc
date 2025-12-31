@@ -1,0 +1,246 @@
+=== Event Data
+
+As we explored Starling's event system, I mentioned that the _Event_ class contains a `data` property that may take up any kind of object or primitive data type.
+The contents of that property is then passed to an optional second parameter of the event handler.
+
+It's not very well documented, but most of Starling's standard events make use of this property.
+This means that you often have direct access to the data you need, allowing you to simplify your event handlers slightly.
+
+For example, in an _EnterFrameEvent_, you typically want to know the time that has passed since the previous frame.
+To do this, you can either use the property on the respective event:
+
+[source, as3]
+----
+function(event:EnterFrameEvent):void
+{
+    var passedTime:Number = event.passedTime;
+    juggler.advanceTime(passedTime);
+}
+----
+
+Or you can let Starling populate the second parameter with the passed time.
+
+[source, as3]
+----
+function(event:Event, passedTime:Number):void
+{
+    juggler.advanceTime(passedTime);
+}
+----
+
+Note that I didn't even declare the first parameter as _EnterFrameEvent_; I don't need any specific data from that object, so why bother?
+Here are all the `data`-shortcuts provided by Starling's standard events:
+
+[source, as3]
+----
+// EnterFrameEvent
+function(e:Event, passedTime:Number):void;
+
+// KeyboardEvent
+function(e:Event, keyCode:uint):void;
+
+// ResizeEvent
+function(e:Event, size:Point):void;
+
+// TouchEvent
+function(e:Event, touches:Vector.<Touch>):void;
+
+// Event.ROOT_CREATED
+function(e:Event, root:YourRootClass):void;
+----
+
+=== Keyboard Input
+
+In previous Starling versions, the _KeyboardEvent_ was dispatched to all display objects.
+While this was very convenient, it also caused some performance issues -- thus, this behavior was changed in Starling 2.
+Keyboard events are now only dispatched to the stage.
+
+When you listen to an event on the stage, you need to be a little careful: you have to make sure that you remove the handler when you do not need it any longer.
+After all, the stage exists for the complete lifetime of the application; any event handlers on it will be kept in memory for all that time.
+
+My recommendation: make a detour over the `ADDED_TO_STAGE` and `REMOVED_FROM_STAGE` event handlers when listening for keyboard input.
+A small helper method can automate the process.
+
+[source, as3]
+----
+public static function addStageEventListener(
+    target:DisplayObject, type:String, listener:Function):void
+{
+    target.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+    target.addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+
+    if (target.stage) onAddedToStage();
+
+    function onAddedToStage():void
+    {
+        target.stage.addEventListener(type, listener);
+    }
+
+    function onRemovedFromStage():void
+    {
+        target.stage.removeEventListener(type, listener);
+    }
+}
+----
+
+TIP: Personally, I always add a _Helpers_-class to my application that takes up utility methods like that one.
+
+Using this method, you can add a perfectly safe _KeyboardEvent_ handler to an object like this:
+
+[source, as3]
+----
+public class MySprite extends Sprite
+{
+    public function MySprite()
+    {
+        Helpers.addStageEventListener(
+            this, KeyboardEvent.KEY_UP, onKeyUp);
+    }
+
+    private function onKeyUp(e:Event, keyCode:uint):void
+    {
+        if (keyCode == Keyboard.ESCAPE)
+            /* ... */
+    }
+}
+----
+
+That way, it's guaranteed that the event listener doesn't stay around longer than needed.
+It is only active as long as it's part of the display list.
+
+Of course, a similar approach can be taken for all kinds of events dispatched by the stage or any other independent object.
+
+=== Custom Transitions
+
+The _Transitions_ class contains some standard easing functions to be used by _Tweens_, e.g. the standard `EASE_IN` / `EASE_OUT` or its elastic our bouncing alternatives.
+But did you know that you can set up your own transition methods, too?
+
+That way, you can add more fine-grained easing equations (like quadratic or sine transitions, for example).
+You can even bend the whole system to your needs -- who says that a tween must really end at the provided endpoint?
+
+For example, it's sometimes useful to highlight a button or icon by letting it jump up ("Pick me! Pick me!").
+That can be implemented via a custom `jump` transition.
+
+[source, as3]
+----
+Transitions.register("jump",
+    function(ratio:Number):Number
+    {
+        return Math.sin(ratio * Math.PI);
+    });
+----
+
+A transition method contains just one parameter: `ratio`.
+It indicates the current position within the tween and ranges from zero (animation start) to one (animation end).
+
+The return value will tell the tween if the animated property should remain at the start value (`0`), the end value (`1`), or something in between.
+For example, a value of `0.5` would indicate the exact midpoint between start and end value.
+
+For our jump animation, we simply forward `ratio * π` to the sine function; that will yield a simple up-and-down movement.
+That transition function only needs to be registered once, e.g. during application startup.
+With that in place, the following code lets an object jump up 100 points before falling down to its original position:
+
+[source, as3]
+----
+juggler.tween(object, 0.5, {
+    y: object.y - 100,
+    transition: "jump"
+});
+----
+
+Handy, right?
+
+While you're at it, also check out the new _BezierEasing_ class that was introduced in Starling 2.5.
+Just like its CSS sibling `cubic-bezier` (which web developers might recognize), it makes it really easy to create custom transitions.
+Use a visual tool like http://cubic-bezier.com/[cubic-bezier.com] or https://matthewlein.com/tools/ceaser[Ceaser] to draw your curve; then pass the four coordinates to the new `BezierEasing.create()` method.
+
+.The control points P1 and P2 determine the function's curvature.
+image::cubic-bezier-points.png[The Cubic Bezier Function, 280, pdfwidth='4cm', scaledwidth='280px']
+
+Do you want to mimic the exact easing functions used by CSS animations?
+_BezierEasing_ makes it possible.
+
+[source, as3]
+----
+Transitions.register("ease",        BezierEasing.create(0.25, 0.1, 0.25, 1));
+Transitions.register("ease-in",     BezierEasing.create(0.42, 0, 1, 1));
+Transitions.register("ease-out",    BezierEasing.create(0, 0, 0.58, 1));
+Transitions.register("ease-in-out", BezierEasing.create(0.42, 0, 0.58, 1));
+----
+
+Also, if you're creating an app that follows Google's https://material.io[Material Design System], you can make sure that your tweens behave exactly as recommended.
+You just need to set up the appropriate transitions like this:
+
+[source, as3]
+----
+Transitions.register("standard",   BezierEasing.create(0.4, 0.0, 0.2, 1.0));
+Transitions.register("decelerate", BezierEasing.create(0.0, 0.0, 0.2, 1.0));
+Transitions.register("accelerate", BezierEasing.create(0.4, 0.0, 1.0, 1.0));
+----
+
+=== Image vs. Quad
+
+Since Starling 2, the difference between _Quad_ and _Image_ is more subtle than in the past.
+Previously, if you needed just a color or gradient, you used _Quad_; if you needed a texture, you used _Image_.
+Now, however, a _Quad_ can be textured just the same.
+Thus, you actually don't need the _Image_ class very often.
+
+The following two lines of code are _almost_ equivalent:
+
+[source, as3]
+----
+var quad:Quad = Quad.fromTexture(texture);
+var image:Image = new Image(texture);
+----
+
+Why is there even an _Image_ class then?
+To be honest: mostly for backwards compatibility.
+I didn't want to burden all Starling developers with having to exchange all of their _Image_ instances when upgrading to version 2!
+
+The new _Image_ class can do more, though, as it contains two useful new properties.
+
+`tileGrid`::   Repeats the same texture over and over, filling up the area with a certain tile.
+               We made use of this in the <<Scrolling>> chapter of the _Flappy Bird_ game.
+`scale9Grid`:: Divides an image into nine regions that scale differently.
+               Useful for scalable interface elements like buttons or borders.
+
+You are probably wondering: when you don't need those features, should you use _Quad_ or _Image_?
+If you are looking for maximum efficiency, the answer is _Quad_, since it's a little more lightweight.
+
+On the other hand, the difference is so small that it will be hard to measure.
+Personally, I'm still sticking to _Image_ most of the time -- it's hard to get rid of old habits, right?
+
+==== BitmapFont Native Size
+
+What's annoying about bitmap fonts is that they only look really crisp if used in the exact same size they were created with.
+Scaling them up or down often leads to blurry results.
+
+To display them in the optimal size, use the `NATIVE_SIZE` constant:
+
+[source, as3]
+----
+var text:TextField = new TextField(300, 80, "Cowabunga!");
+text.format.setTo("Tahoma", BitmapFont.NATIVE_SIZE);
+----
+
+So far, so good -- we already covered that.
+There is a little more to that constant, though.
+
+When scaling down, you often get away with acceptable results if you scale by ratios like `1/2`, `1/3`, `1/4`, etc.
+The `NATIVE_SIZE` property can be used for that, too -- just multiply the constant by the appropriate ratio.
+
+[source, as3]
+----
+text.format.setTo("Tahoma", BitmapFont.NATIVE_SIZE * 0.5);
+----
+
+Furthermore, when you are shooting for a retro look with a pixelated font, you might want to scale up using a whole number.
+As to be expected, that works similarly:
+
+[source, as3]
+----
+text.format.setTo(BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2);
+----
+
+TIP: Speaking about pixelated fonts: don't forget to set the `smoothing` property of your _BitmapFont_ to `TextureSmoothing.NONE` for such fonts.
+Or, even better, set the `smooth` attribute in the font XML to `0`.

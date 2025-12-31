@@ -1,0 +1,44 @@
+= Flappy Starling
+
+In this chapter, we are going to jump (flap?) right into the development of an actual game.
+Along the way, you will get a peek at Starling's basic concepts.
+If you don't understand all the steps right away, don't worry: we will look at the details later.
+For now, it is more important to get a feeling for the framework, and to enjoy the sense of achievement that comes with finishing a game.
+
+include::the-blueprint.adoc[]
+
+include::starting-point.adoc[]
+
+include::organizing-the-code.adoc[]
+
+include::adding-the-bird.adoc[]
+
+include::scrolling.adoc[]
+
+include::physics.adoc[]
+
+include::game-phases.adoc[]
+
+include::obstacles.adoc[]
+
+include::collision-detection.adoc[]
+
+include::score-display.adoc[]
+
+include::title-screen.adoc[]
+
+include::sound.adoc[]
+
+include::deployment.adoc[]
+
+== Summary
+
+Pat yourself on the back: you just created a complete game!
+All things considered, it wasn't so hard, was it?
+
+Granted, _Flappy Starling_ is not the most complex of games.
+But even the most extensive games will use the same basic building blocks you just became acquainted with.
+As long as you keep your code organized well, you will be able to tackle anything you can imagine!
+
+It will definitely help, though, to know more about all the tools Starling has to offer.
+That's why we will look at them in detail in the following sections.

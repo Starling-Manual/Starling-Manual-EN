@@ -1,0 +1,172 @@
+== Organizing the Code
+ifndef::imagesdir[:imagesdir: ../../img]
+
+It's nice that there is something on the screen now -- but before going on, we need to ponder a little bit about how we're going to organize all of the code we're going to write.
+
+Of course, we could put all of our game elements right into the _Game_ class, but that's going to get messy quickly.
+Instead, it's a good idea to split the game up into logical units; each with a very limited responsibility.
+
+After all, we're not only going to create this landscape with the flying bird, but also a title screen, maybe a leaderboard, etc.
+But how should we organize all these elements?
+
+=== Introducing: The Sprite
+
+You have already seen this class before: our _Game_ class is extending _Sprite_.
+This class is one of the most important building blocks within Starling.
+It's a container that can group together multiple elements.
+
+Here's a simple example showing a typical use-case of a sprite:
+
+[source, as3]
+----
+var body:Image = ...;
+var tail:Image = ...;
+var beak:Image = ...;
+
+var bird:Sprite = new Sprite();
+bird.addChild(body);
+bird.addChild(tail);
+bird.addChild(beak);
+
+addChild(bird);
+----
+
+The `bird` object now contains body, tail and beak, grouped together in one object.
+When you want to move around the bird, you just have to change the x- and y-coordinates of the `bird` instance; all child elements will move with it.
+
+If you want the bird sprite to be reusable, you could also use the following approach:
+
+[source, as3]
+----
+public class Bird extends Sprite // <1>
+{
+    public function Bird()
+    {
+        var body:Image = ...;
+        var tail:Image = ...;
+        var beak:Image = ...;
+
+        addChild(body); // <2>
+        addChild(tail);
+        addChild(beak);
+    }
+}
+
+var bird:Bird = new Bird(); // <3>
+addChild(bird);
+----
+<1> Create the _Bird_ class so that it extends _Sprite_.
+<2> Just like before, we're adding some child objects; here, we are doing it in the constructor.
+<3> Instantiate and use the bird sprite like this.
+
+That's a very common pattern when working with Starling.
+One might even argue that this is your main task as a developer: to organize your display objects hierarchically by grouping them into sprites (or other containers), and to write the code that glues everything together.
+
+As mentioned above, the _Game_ class is our top-level sprite.
+It's going to be the _controller_ that manages what's going on at the highest level.
+The other elements will follow the lead; one of them is the _World_ class.
+
+=== The World class
+
+The _World_ class is going to deal with the actual game mechanics.
+When the _Game_ tells it to launch the bird, it will do just that; and when the bird crashes into an obstacle, it will notify the _Game_ and will wait for instructions about how to go on.
+
+For starters, create that new class and add the following code:
+
+[source, as3]
+.World.as
+----
+public class World extends Sprite
+{
+    private var _width:Number;
+    private var _height:Number;
+
+    public function World(width:Number, height:Number)
+    {
+        _width = width; // <1>
+        _height = height;
+
+        addBackground(); // <2>
+    }
+
+    private function addBackground():void
+    {
+        var skyTexture:Texture = Game.assets.getTexture("sky"); // <3>
+        var sky:Image = new Image(skyTexture);
+        sky.y = _height - skyTexture.height;
+        addChild(sky);
+
+        var cloud1:Image = new Image(Game.assets.getTexture("cloud-1"));
+        cloud1.x = _width * 0.5;
+        cloud1.y = _height * 0.1;
+        addChild(cloud1);
+
+        var cloud2:Image = new Image(Game.assets.getTexture("cloud-2"));
+        cloud2.x = _width * 0.1;
+        cloud2.y = _height * 0.2;
+        addChild(cloud2);
+    }
+}
+----
+<1> I added `width` and `height` arguments to the constructor.
+    That way, the _Game_ class can pass in the stage dimensions.
+<2> The code that creates the sky texture was moved into a separate method.
+    While I was at it, I also added two clouds to the sky to make it look a little more interesting.
+<3> Thanks to the static `assets` property on the _Game_ class, we can easily access our textures without passing the _AssetManager_ instance around.
+
+[IMPORTANT]
+.Relative Positioning
+====
+Right now, we are creating a Flash game with a fixed size of 320x480 pixels.
+However, I'd like to port the game to mobile, later.
+
+Mobile devices have all kinds of different screen sizes, so it's a good idea to take that into account right away.
+I'm doing that by working with relative instead of absolute positions.
+
+[source, as3]
+----
+// bad: fixed position
+_cloud1.x = 160;
+
+// better: relative position
+_cloud1.x = _width * 0.5;
+----
+====
+
+What's left to do, of course, is to reference this new class from _Game.as_.
+Here's how it should look like now:
+
+[source, as3]
+.Game.as
+----
+public class Game extends Sprite
+{
+    private static var sAssets:AssetManager;
+
+    private var _world:World; // <1>
+
+    public function Game()
+    { }
+
+    public function start(assets:AssetManager):void
+    {
+        sAssets = assets;
+
+        _world = new World(stage.stageWidth, stage.stageHeight); // <2>
+        addChild(_world);
+    }
+
+    public static function get assets():AssetManager
+    {
+        return sAssets;
+    }
+}
+----
+<1> Add a new member variable.
+<2> Instantiate the new class (passing the stage dimensions along) and add it to the stage.
+
+Compile and run to check if everything worked out.
+Except for the two inconspicuous new clouds, it should look just like before.
+
+.Our refactoring didn't change the look of our game much.
+image::flappy/clouds.png[Game background with clouds, pdfwidth='6cm']

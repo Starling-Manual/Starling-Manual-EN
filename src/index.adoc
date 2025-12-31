@@ -7,56 +7,58 @@ Daniel Sperl <http://www.gamua.com[Gamua]>
 :icons: font
 :source-highlighter: rouge
 :imagesdir: ../img
+:docinfo: shared
 :experimental:
 :autofit-option:
-:target-manual:
 ifndef::ebook-format[:leveloffset: 1]
 
 // introduction
 
-The goal of this manual is to provide an extensive introduction to the http://www.starling-framework.org[Starling Framework].
+The goal of this manual is to provide a complete and in-depth guide to the http://www.starling-framework.org[Starling Framework].
 Starling is a cross-platform engine for _ActionScript 3_ that can be used for all kinds of applications, with a special focus on 2D games.
 
-ifdef::backend-html5[]
-TIP: Feel free to download a link:manual.pdf[PDF version] of this document.
-endif::[]
+No matter if you only just discovered Starling or if you are an old veteran, you should get something out of this manual.
+It starts with the fundamentals and gradually moves on to advanced topics, covering everything you need to build high-quality 2D applications and games with Starling.
 
 In this guide, you will learn:
 
-* The technologies Starling was built upon and the principles it follows.
-* How to pick an IDE and set it up for your first project.
-* The basic concepts like the display list, events and the animation system.
-* Advanced techniques, like how to tap into the potential of fragment and vertex programs.
-* How to get the best performance out of the framework.
-* What's required to get your game to run on mobile phones and tablets.
-
-Keep on reading to dive right into it!
+* The background technologies Starling was built upon and the principles it follows.
+* How to set up your development environment and create your first projects.
+* How all the core concepts — like the display list, events, and the animation system — fit together in practice.
+* Advanced techniques, including custom rendering with fragment and vertex programs.
+* How to get the best possible performance out of the framework.
+* What’s required to ship your applications on mobile phones and tablets.
+* Practical recipes, tips, and extensions that go beyond the basics.
 
 [NOTE]
 .The Starling Handbook
 ====
-[.right, link=https://gamua.com/starling/handbook/]
+[.right]
 image::handbook-mockup.jpg[The Starling Handbook, 250]
+In the past, this manual was accompanied by a separate book called the _Starling Handbook_.
+It contained additional chapters that went beyond the scope of the original manual and was available for purchase.
 
-Are you looking for an extended version of this manual? That's the _Starling Handbook_.
-In addition to all you find here, it adds a plethora of additional information:
+As of today, this distinction no longer exists: all former Handbook chapters have been fully integrated into this manual, which now serves as the complete and definitive Starling documentation — free for everyone.
 
-* Learn how to create a complete game from start to finish.
-* Get inspired by cookbook-like recipes for all tastes.
-* Learn first hand about Feathers and Starling Builder.
-
-Find out all about it here: https://gamua.com/starling/handbook/[*The Starling Handbook*]
+_Feel free to download the original Handbook in its latest version here:
+link:starling-handbook.pdf[Starling Handbook (PDF)]_
 ====
 
 // include main chapters
 
 include::getting-started/index.adoc[]
 
+include::flappy-starling/index.adoc[]
+
 include::basic-concepts/index.adoc[]
 
 include::advanced-topics/index.adoc[]
 
 include::mobile-development/index.adoc[]
+
+include::pro-tips/index.adoc[]
+
+include::extensions/index.adoc[]
 
 // conclusion
 
@@ -81,11 +83,10 @@ Or do you have any questions that haven't been answered yet?
 The Starling community is eager to help you!
 Pay us a visit at the official http://forum.starling-framework.org[Starling Forum].
 
-=== Want more?
+=== What’s next?
 
-If you want to become a true Starling master, don't forget to get yourself a copy of the https://gamua.com/starling/handbook/[Starling Handbook]!
-In addition to all the contents of this manual, it goes above and beyond to provide you with easy to follow recipes you can put to use in your own projects.
-And you're supporting the continuing development of Starling at the same time!
+With this manual, you now have the complete Starling documentation at your disposal — from the very first steps all the way to advanced techniques and extensions.
 
-[link=https://gamua.com/starling/handbook/]
-image::handbook-mockup.jpg[The Starling Handbook]
+If you want to deepen your knowledge even further, the best next step is to experiment:
+try out the examples, explore the API, and build something of your own.
+And if you ever get stuck or want to exchange ideas, the Starling community is always happy to help.

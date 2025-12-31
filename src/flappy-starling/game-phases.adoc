@@ -1,0 +1,245 @@
+== Game Phases
+
+You might not have noticed it, but our game is actually already in a state that you could call a game.
+The player has a task to fulfill (keep the bird flying) and he can fail by crashing the bird into the ground.
+
+What's lacking, though, is some kind of progression; a sequence of "phases" that provide a structure to what's happening.
+I'd like to split up the game into three such phases:
+
+[horizontal]
+Idle:: The bird just flies horizontally. In the final version, this state will also show the game logo and the top score.
+Playing:: The actual gameplay phase in which the player has full control over the bird.
+Crashed:: After a collision, the game will stop for a moment so that the player has a chance to realize his failure.
+
+The game starts in the "Idle" phase; as soon as the player clicks anywhere on the screen, the game starts (phase: "Playing").
+A collision will put the game into the "Crashed" phase and will eventually return the game to the "Idle" phase.
+This loop goes on indefinitely until the player quits the game altogether.
+
+[ditaa, game-phases, png, width=500, scale=4, pdfwidth='10.5cm']
+....
+    /--------\   /---------\   /---------\
+/-->+  Idle  +-->+ Playing +-->+ Crashed +--\
+|   \--------/   \---------/   \---------/  |
+\-------------------------------------------/
+....
+
+Since these phases influence mostly what's happening inside the game world, we will store them in the _World_ class.
+Open it up and make the following modifications:
+
+[source, as3]
+----
+public class World extends Sprite
+{
+    /* ... */
+
+    public static const PHASE_IDLE:String = "phaseIdle"; // <1>
+    public static const PHASE_PLAYING:String = "phasePlaying";
+    public static const PHASE_CRASHED:String = "phaseCrashed";
+
+    private var _phase:String; // <2>
+
+    public function World(width:Number, height:Number)
+    {
+        _phase = PHASE_IDLE; // <3>
+
+        /* ... */
+    }
+
+    public function start():void
+    {
+        _phase = PHASE_PLAYING; // <4>
+    }
+
+    public function reset():void
+    {
+        _phase = PHASE_IDLE; // <5>
+        resetBird();
+    }
+
+    private function resetBird():void
+    {
+        _bird.x = _width / 3; // <6>
+        _bird.y = _height / 2;
+    }
+
+    /* ... */
+
+    public function get phase():String { return _phase; } // <6>
+}
+----
+<1> Three _String_ constants define our phases.
+<2> The current phase is stored in a member variable.
+<3> Initially, we're in the `IDLE` phase that just animates the flying bird.
+<4> The new `start` method is to be called when the player is ready to play.
+    It simply switches the phase to `PLAYING`.
+<5> The `reset` method will be called when the world should be restored to the initial state.
+<6> We also move the bird back to its original position.
+    This code was pulled out from the `addBird` method.
+
+This code provides the basis for switching between `IDLE` and `PLAYING` phases.
+The phases have no effect on the actual gameplay yet, though.
+
+* In all phases except `CRASHED`, the bird should keep flapping and the ground should keep moving.
+* In the `PLAYING` phase (and only in this phase), we want physics and collision detection.
+
+That's easily achieved by modifying `advanceTime` (still in the _World_ class):
+
+[source, as3]
+----
+public function advanceTime(passedTime:Number):void
+{
+    if (_phase == PHASE_IDLE || _phase == PHASE_PLAYING)
+    {
+        _bird.advanceTime(passedTime);
+        advanceGround(passedTime);
+    }
+
+    if (_phase == PHASE_PLAYING)
+    {
+        advancePhysics(passedTime);
+        checkForCollisions();
+    }
+}
+----
+
+What's still missing is code that actually switches to the `CRASHED` phase.
+That's supposed to happen in the case of a collision with the ground (or, later, with an obstacle).
+
+Still in the _World_ class, insert the following code:
+
+[source, as3]
+----
+public static const BIRD_CRASHED:String = "birdCrashed"; // <1>
+
+private function checkForCollisions():void
+{
+    var bottom:Number = _ground.y - BIRD_RADIUS;
+    var collision:Boolean = false;
+
+    if (_bird.y > bottom)
+    {
+        _bird.y = bottom;
+        _birdVelocity = 0;
+        collision = true;
+    }
+
+    if (collision)
+    {
+        _phase = PHASE_CRASHED; // <2>
+        dispatchEventWith(BIRD_CRASHED); // <3>
+    }
+}
+----
+<1> We define an _event type_ that will be used to inform listeners about a crash.
+<2> In case of a collision, we switch to the `CRASHED` phase.
+<3> Furthermore, we dispatch the `BIRD_CRASHED` event.
+
+As promised, this code activates the `CRASHED` phase if the bird ends up hitting the ground.
+However, it's also the first time we are dispatching an event -- which makes this a great opportunity to properly introduce you to Starling's event system.
+
+=== Events
+
+I wrote earlier that the _Game_ class should act as a high level controller that manages all the components of the game.
+Now that a collision has occurred, there is some management to do: for example, we might want to save the score and display a "Game Over" screen.
+The _World_ class wouldn't be the correct place for these tasks.
+
+However, in order to do anything about it, _Game_ needs to know that a collision occurred.
+How can we tell it about the crash?
+
+The natural thing to do would be to call a method on the _Game_ instance; however, we don't have such a reference within _World_.
+
+[NOTE]
+====
+Technically, we do have a reference: the parent display object can always be accessed via the `parent` property.
+However, a display object should never require the parent to be a _specific_ type; that would severely limit its usefulness.
+In our case, we would need to make a call like this:
+
+    (parent as Game).onCollision();
+
+It's good that (e)books don't reproduce smell yet -- because, boy, this code stinks!
+====
+
+This is a quite common scenario, actually, and the reason why there are events, at all.
+
+* Any Starling object can _dispatch_ an event; other objects can _listen_ to those events.
+* We already encountered events of type _TOUCH_ and _ENTER_FRAME_, but you can define additional types yourself.
+  An event type is simply a unique string.
+
+In this case, the event type is the _String_ stored in the static constant `BIRD_CRASHED`.
+We dispatch an event with this type when we encounter a collision; that's done via the line
+
+    dispatchEventWith(BIRD_CRASHED);
+
+For this to be of any use, somebody must listen to this event, of course.
+So that's how the _Game_ class will become aware that a collision has occurred -- it simply listens to the `BIRD_CRASHED` event.
+Open it up and make the following modifications:
+
+[source, as3]
+----
+public function start(assets:AssetManager):void
+{
+    /* ... */
+
+    _world = new World(stage.stageWidth, stage.stageHeight);
+    _world.addEventListener(World.BIRD_CRASHED, onBirdCollided); // <1>
+    addChild(_world);
+
+    /* ... */
+}
+
+private function onBirdCollided():void // <2>
+{
+    Starling.juggler.delayCall(restart, 1.5); // <3>
+}
+
+private function restart():void
+{
+    _world.reset();
+}
+----
+<1> We register an event listener on the _World_ instance, listening specifically to the `BIRD_CRASHED` event.
+<2> When such an event is dispatched, the method `onBirdCollided` will be executed.
+<3> This line will call the `restart` method with a delay of 1.5 seconds.
+
+That's not so complicated, right?
+Now, the method `onBirdCollided` acts as event listener; it will be called whenever the event occurs.
+
+NOTE: Any number of objects could add an event listener for this event; you're not limited to just one.
+
+Let me tell you a little more about the `delayCall` method you just encountered in the event listener.
+When the bird crashes, we don't want to restart the game right away; instead, we want the player to have a little time to realize what just happened.
+
+For this reason, we are not restarting the game right away; instead, we wait a short moment before calling the `restart` method.
+The `delayCall` instance on Starling's _Juggler_ is the preferred way of doing this.
+
+NOTE: Don't worry, I will properly introduce you to the _Juggler_ later.
+
+=== Starting up
+
+When the application starts, we are in the `IDLE` phase.
+The actual game session is supposed to start when the user touches the screen.
+That's the final step we need to make in order for our phase-system to work.
+
+Update the `onTouch` event handler inside the _Game_ class like this:
+
+[source, as3]
+----
+private function onTouch(event:TouchEvent):void
+{
+    var touch:Touch = event.getTouch(stage, TouchPhase.BEGAN);
+    if (touch)
+    {
+        if (_world.phase == World.PHASE_IDLE) // <1>
+            _world.start();
+
+        _world.flapBird();
+    }
+}
+----
+<1> When we are in `IDLE` phase, call the `start` method.
+    This will switch the game into the `PLAYING` phase.
+
+Start up the game now.
+If everything went right, the whole thing should feel much more like a game already!
+We're now switching properly between the `IDLE`, `PLAYING`, and `CRASHED` phases, and you've got the chance to restart properly after a crash.
+Not bad!

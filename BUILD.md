@@ -1,59 +1,35 @@
 # Building the Starling Manual
 
-The _Starling Manual_ uses the [AsciiDoctor][1] toolchain to provide multiple output formats (HTML, PDF and EPUB) from a single, plain-text source written with the [AsciiDoc][2] markup language.
+The _Starling Manual_ uses the [Asciidoctor][1] toolchain to generate multiple output formats (HTML and PDF) from a single source written in the [AsciiDoc][2] markup language.
 
-To build the manual yourself, you need will need to install AsciiDoctor itself and the [Pygments][3] library for syntax highlighting.
-This means you will also have to install a few dependencies, like Ruby and Python.
-This document will guide you through the installation process.
+All required Ruby dependencies are managed via Bundler. Source code highlighting is handled by Asciidoctor’s built-in support for the Rouge highlighter, so no external syntax-highlighting tools are required.
 
 ## Installation
 
-### macOS and Linux
+To build the manual, you need a working Ruby installation (version 2.7 or newer recommended).
 
-Apple's _macOS_ and most _Linux_ distributions have both Ruby and Python installed per default, which makes the process rather easy.
-
-1. Install the _Bundler_ Ruby gem via:
+1. Install Ruby if it’s not already available on your system.
+2. Install Bundler (if necessary):
    `gem install bundler`
-2. Install _pip_, the package manager for Python:
-   `sudo easy_install pip`
-3. Use _pip_ to install _Pygments_:
-   `pip install pygments`
-4. Install all required Ruby gems via:
-   `cd path/to/manual; bundle install`
-
-### Windows
-
-I recommend to use the package manager [Chocolatey][5] for easy installation of all dependencies.
-
-1. Install _Chocolatey_.
-2. Open an administrative command line (in Windows 10, right-clicking the Start button reveals such an option).
-3. Install the basic packages via:
-   `choco install -y ruby python2 pip`
-4. Use _pip_ to install _Pygments_:
-   `pip install pygments`
-5. Install the _Bundler_ Ruby gem via:
-   `gem install bundler`
-6. Install all required Ruby gems via:
-   `cd path/to/manual; bundle install`
+3. Install all required dependencies:
+   `bundle install`
 
 ## Compilation
 
-The actual compilation is handled by [Rake][4].
+The actual compilation is handled by [Rake][4], which is included via the project’s Ruby dependencies.
 To see all available Rake tasks, call:
 
     cd path/to/manual
     rake --tasks
 
 If you simply call `rake`, the HTML version will be compiled to the `out` directory.
-To compile PDF or EPUB versions, call:
+To compile the PDF version, call:
 
     rake build_pdf
-    rake build_epub
 
 That's it!
 
 [1]: http://asciidoctor.org
 [2]: http://asciidoctor.org/docs/what-is-asciidoc
-[3]: http://pygments.org
 [4]: https://ruby.github.io/rake/
 [5]: https://chocolatey.org

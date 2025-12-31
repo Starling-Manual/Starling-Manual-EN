@@ -1,0 +1,226 @@
+== Score Display
+
+Since we talked so much about keeping track of the score, let's make that the goal of our next task, shall we?
+Don't worry: compared to the last two chapters (which were rather challenging), this is going to be really easy.
+We will add a small score display to the top left of the screen, visible during the course of each game session.
+
+=== Text in Starling
+
+In Starling, the _TextField_ class is responsible for displaying text.
+It populates a rectangular area with the letters of a String -- quite simple, actually.
+
+Naturally, we first have to decide which font we want to use.
+Starling supports two types of fonts:
+
+TrueType Fonts::
+The standard vector-based fonts you are probably familiar with.
+Supports any fonts that are provided by the operating system or included in the application.
+
+Bitmap Fonts::
+A texture containing all the glyphs of a font, as well as an accompanying XML file.
+Needs to be created with a tool like http://kvazars.com/littera/[Littera] or http://www.angelcode.com/products/bmfont/[BMFont].
+
+The advantage of _TrueType Fonts_ is that they are very easy to use; however, changing the displayed text is somewhat expensive.
+For text that changes often, _Bitmap Fonts_ are better suited.
+Besides, you can pre-bake them with decorations like outlines or color gradients, which is great for games like _Flappy Bird_.
+
+If you look into the folder `assets/fonts` within our project, you'll see that I already included one such bitmap font called "Brady Bunch".
+It is based on a _TrueType_ font available on http://www.dafont.com/brady-bunch.font[dafont.com] (a great resource if you are looking for fancy fonts).
+
+.The _Brady Bunch_ bitmap font.
+image::flappy/bradybunch.png[Brady Bunch font, 400, pdfwidth='7cm']
+
+Just like all the other textures we have been using so far, this font is already loaded by the _AssetManager_ by the code we used as our starting point.
+We can make use of it without any further preparations.
+
+=== TextFormat
+
+The _TextFormat_ class is used to set up the exact style you want text to be rendered with.
+It goes hand in hand with the _TextField_ class.
+
+Open up the _Game_ class (all edits in this section are done in this class) and add the following static definition to the top:
+
+[source, as3]
+----
+private static var sDefaultTextFormat:TextFormat =
+    new TextFormat("bradybunch", BitmapFont.NATIVE_SIZE, Color.WHITE);
+----
+
+This _TextFormat_ instance describes the font settings we want to use for the score label.
+
+* Note the usage of `BitmapFont.NATIVE_SIZE`: it will make sure that the bitmap font is rendered in exactly the size that it was created with.
+  This will provide the best possible image quality.
+* Any bitmap font that already contains colors must be set up as pure _white_ in the source code.
+  Other colors would tint the text in an undesired way.
+
+CAUTION: Classes named _TextField_ and _TextFormat_ exist in the packages `starling.text` and `flash.text`.
+When you write that code, make sure that you import the correct ones (those that are coming with Starling).
+
+=== The Score Label
+
+The _Game_ class needs to display the score, but it also needs to keep track of it.
+That means that we have to add two member variables.
+
+[source, as3]
+----
+private var _score:int;
+private var _scoreLabel:TextField;
+----
+
+Creating the actual _TextField_ is best done in the `start` method.
+Add the following setup code (e.g. right below the code that sets up the _World_ instance).
+
+[source, as3]
+----
+_scoreLabel = new TextField(180, 80, "", sDefaultTextFormat); // <1>
+_scoreLabel.visible = false; // <2>
+addChild(_scoreLabel); // <3>
+----
+<1> Set up the _TextField_ with a size of 180 × 80 points, using the text format we just set up.
+<2> The label should become visible only during `PHASE_PLAYING`. For now, we make it invisible.
+<3> You know the drill: only objects that are part of the display list will be rendered.
+
+We are now in a situation that deserves special attention: there are two member variables that are storing a representation of the current score (an _Integer_ and a _TextField_).
+Those two objects must always be in sync: when you change one, you need to change the other.
+
+I know myself: if I don't take special measures right now, I'm bound to forget changing one of the two member variables some time in the future.
+To make sure that can't happen, I recommend adding a property that takes care of any score changes.
+We can even make it _private_, since it's only meant for internal use:
+
+[source, as3]
+----
+private function get score():int { return _score; }
+private function set score(value:int):void
+{
+    _score = value;
+    _scoreLabel.text = value.toString();
+}
+----
+
+TIP: While it might seem unnecessary to make this effort even in a simple game like this, make it a habit to always take such precautions.
+It's easy to do, and it will potentially save you a lot of trouble later.
+
+This lays the groundwork for our score display.
+All of this was done to be able to keep track of the player's score -- so let's do just that!
+
+Do you remember?
+Each time the bird passes an obstacle, the _World_ class dispatches a suitable event.
+That's our signal to increment the score.
+
+[source, as3]
+----
+public function start(assets:AssetManager):void
+{
+    /* ... */
+
+    _world.addEventListener(World.OBSTACLE_PASSED, onObstaclePassed); // <1>
+}
+
+private function onObstaclePassed():void // <2>
+{
+    this.score += 1; // <3>
+}
+----
+<1> Add the event listener somewhere within the `start` method.
+<2> Create the actual event handler.
+<3> It makes use of the brand-new `score` property.
+
+We are almost ready.
+All that's left to do is making the score label visible when the game starts, and hiding it after an error.
+This means some small modifications to existing methods.
+
+[source, as3]
+----
+private function onTouch(event:TouchEvent):void
+{
+    var touch:Touch = event.getTouch(stage, TouchPhase.BEGAN);
+    if (touch)
+    {
+        if (_world.phase == World.PHASE_IDLE)
+        {
+            this.score = 0; // <1>
+            _scoreLabel.visible = true; // <2>
+            _world.start();
+        }
+        _world.flapBird();
+    }
+}
+
+private function restart():void
+{
+    _scoreLabel.visible = false; // <3>
+    _world.reset();
+}
+----
+<1> When a game session starts, the score must be reset to zero.
+<2> The label must become visible during that phase of the game.
+<3> At the end of the session, we hide the label.
+
+Again, we finished a major stepping stone of our game production!
+Start the game to watch the score display in all its glory.
+
+.Notice the fancy score display in the top left.
+image::flappy/score-display.png[Score Display, pdfwidth='6cm']
+
+=== Saving the Top Score
+
+While the player now sees his current score while playing, the top score is not stored yet.
+As part of the title screen (which will be created in the next section), I'd like to display the current record.
+Let's prepare that before moving on.
+
+What's special about the top score is that it should be _persistent_, i.e. it must outlive an application restart.
+Typically, this means we have to write the respective value into a file on the disk.
+
+The ActionScript API provides a very flexible mechanism that does just that: the _SharedObject_.
+The advantage: it works both for AIR applications and within the Flash Player.
+Furthermore, it's really easy to use.
+
+Still in the _Game_ class, create a new member variable and instantiate it in the constructor.
+
+[source, as3]
+----
+private var _sharedObject:SharedObject;
+
+public function Game()
+{
+    _sharedObject = SharedObject.getLocal("flappy-data");
+}
+----
+
+A local shared object is identified by a simple string (in this case, `flappy-data`).
+Contrary to what the name suggests, only the current application can access that object.
+Behind the scenes, the runtime saves its data in a local file.
+
+You can think of a shared object as a persistent _Dictionary_ object.
+To access the top score easily, we wrap access to this dictionary in a new property.
+
+[source, as3]
+----
+private function get topScore():int
+{
+    return int(_sharedObject.data["topScore"]);
+}
+
+private function set topScore(value:int):void
+{
+    _sharedObject.data["topScore"] = value;
+}
+----
+
+This is actually all we need for our data storage needs.
+Of course, we also have to make use of this property somewhere.
+The method `onBirdCollided` is a good candidate for that.
+
+[source, as3]
+----
+private function onBirdCollided():void
+{
+    if (_score > topScore) // <1>
+        topScore = _score;
+
+    Starling.juggler.delayCall(restart, 1.5);
+}
+----
+<1> Update the top score whenever the current score beats it.
+
+Easy, right?

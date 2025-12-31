@@ -1,0 +1,135 @@
+== Sound
+
+Audio is an important element of every game.
+Music helps set up a distinctive mood -- whether you want to build tension or provide comic relief.
+Sound effects not only make an environment more believable; they also help the player to quickly grasp what's happening, even in areas he is not currently paying attention to.
+In this section, we will add a few short sound effects to _Flappy Starling_.
+
+If you don't happen to be an audio artist, you will probably ask where to get the appropriate audio files from.
+Thankfully, an online search will yield many resources.
+
+* For free music and sound effects, I can recommend http://soundimage.org[Soundimage].
+* The commercial site https://www.soundsnap.com[Soundsnap] offers even more variety.
+
+Another option is to create the sound effects yourself.
+But wait, don't dig up your microphone or torture a bird just yet!
+Actually, I'm thinking about simple synthesized sounds like they were used in old 8-bit gaming consoles.
+While those might not be a perfect fit for every game, they are super easy to create and, if nothing else, make great placeholders.
+
+There is a fantastic free tool available that does this job: http://www.drpetter.se/project_sfxr.html[sfxr] (or its macOS port http://thirdcog.eu/apps/cfxr[cfxr]).
+Its user interface is really simple: even if you don't know exactly what's going on (I won't pretend that I do), you can simply generate random sounds until you find something that fits your purpose.
+Tweak the parameters to your needs, export the sound -- and voilà, you have created a unique, royalty free sound!
+
+.cfxr makes it easy to create custom sound effects.
+image::flappy/cfxr.png[cfxr]
+
+After exporting the sound, you need to convert it into _MP3_ format; that's the only audio format you can load in Flash and AIR.
+One option for doing that is the open source audio editor http://www.audacityteam.org[Audacity].
+You can also use it to adapt the volume or make other changes.
+It's a truly powerful tool!
+
+.Audacity can be used to fine-tune a sound and to convert it into MP3 format.
+image::flappy/audacity.png[Audacity]
+
+For our purpose, we are going to need three sounds:
+
+[horizontal]
+flap.mp3:: The bird flaps upwards.
+pass.mp3:: The bird passes an obstacle.
+crash.mp3:: The bird hits an obstacle or the ground.
+
+Create them with the tools shown above and copy them into the directory `assets/sounds` within the development folder (you will need to create that directory first).
+
+NOTE: If you just want to focus on the code for now, you can download the sounds from the game's GitHub repository instead.
+
+=== Embedding Sounds
+
+Up until now, we didn't bother where the game's assets actually come from; we simply used what was available in the repository's starting point.
+Now, for the first time, we need to add additional files.
+
+Find the class _EmbeddedAssets_.
+It already contains several `Embed` statements that make sure that the textures and fonts are baked right into the SWF file during compilation.
+The sound files will join them!
+Add the following code:
+
+[source, as3]
+----
+[Embed(source="../assets/sounds/flap.mp3")]
+public static const flap:Class;
+
+[Embed(source="../assets/sounds/pass.mp3")]
+public static const pass:Class;
+
+[Embed(source="../assets/sounds/crash.mp3")]
+public static const crash:Class;
+----
+
+The _AssetManager_ will automatically pick up those new references and will make them available under the names "flap", "pass" and "crash".
+
+[TIP]
+====
+Embedding the sounds like that is a good approach for an SWF-project (like _Flappy Bird_).
+In an AIR application (e.g. an app for iOS or Android), however, you would rather load the textures and sounds directly from disk.
+This has some advantages we will discuss later in the <<Asset Management>> section.
+====
+
+=== Starting Playback
+
+All that's left for us to do is to actually start playback at the appropriate times.
+Again, the _Game_ class seems like the appropriate spot for that logic.
+The method `onBirdCollided` will trigger the `crash` sound.
+
+[source, as3]
+----
+private function onBirdCollided():void
+{
+    /* ... */
+
+    assets.playSound("crash"); // <1>
+}
+----
+<1> The _AssetManager_ provides the `playSound` method, which will start playback right away.
+
+Passing an obstacle triggers an appropriate event handler, as well -- do you remember?
+
+[source, as3]
+----
+private function onObstaclePassed():void
+{
+    this.score += 1;
+    assets.playSound("pass"); // <1>
+}
+----
+<1> Start the `pass` sound each time an obstacle is passed.
+
+The flapping sound can be added to the `onTouch` event handler.
+
+[source, as3]
+----
+private function onTouch(event:TouchEvent):void
+{
+    var touch:Touch = event.getTouch(stage, TouchPhase.BEGAN);
+    if (touch)
+    {
+        if (_world.phase == World.PHASE_IDLE)
+        {
+            /* ... */
+        }
+        if (_world.phase == World.PHASE_PLAYING)
+        {
+            _world.flapBird();
+            assets.playSound("flap"); // <1>
+        }
+    }
+}
+----
+<1> Start the `flap` sound each time the bird is flapping its wings.
+
+Note that we are starting the `flap` sound only when a touch occurs during `PHASE_PLAYING`.
+Otherwise, you would hear it also when the player touches the screen during the short time when we are waiting for the game to be reset (`PHASE_CRASHED`).
+It doesn't make much sense in that phase.
+
+Compile and run the game to make a proper sound check!
+
+Believe it or not, this was the last missing piece of the _Flappy Starling_ puzzle.
+The game is ready to be played and published!

@@ -1,0 +1,165 @@
+== Starting Point
+
+I set up a repository on _GitHub_ that contains all the source code for this game.
+There's a _git tag_ for each step we're going to take; that way you can follow along easily.
+First, clone the complete project to your development computer.
+
+  git clone https://github.com/Gamua/Flappy-Starling.git
+
+This will copy the game to the directory "Flappy-Starling".
+Navigate into this directory and checkout the tag `start`.
+
+  cd Flappy-Starling
+  git checkout start
+
+This will revert the repository to the state we want to use to start off our project.
+To get an overview about what's there, take a look at the main folders within the project directory.
+
+assets::
+The textures and fonts we are going to load at runtime.
+I prepared all the elements we need to set up the game world, as well as a colorful bitmap font that fits the style of the game.
+
+lib::
+Contains the `starling.swc` library the game will use (v2.0.1).
+I added it directly to the repository so that you can be sure the code will always compile.
+
+src::
+The game's source code; we will spend most of our time here.
+Right now, it only contains a few very basic classes, but we will build on that soon.
+
+NOTE: We are working on a pure _Flash Player_ project here (not _AIR_).
+That simplifies some things; after all, we want to focus completely on the code in this chapter.
+
+You now have to set up your IDE for this project.
+
+* If you are using _IntelliJ IDEA_, you're in luck: the repository contains suitable project and module files (in the root directory).
+** Open the complete project via _menu:File[Open]_ or
+** import the module into an existing project via _menu:File[New > Module from Existing Sources]_.
+* For all other IDEs, please follow the setup procedures shown in the previous chapter.
+** Be sure to create a project for the _Flash Player_ (not _AIR_), using pure _ActionScript 3_.
+** Link `lib/starling.swc` to the project, or use your local version of Starling.
+** The file `FlappyStarling.as` contains the main/startup class.
+
+Once everything is set up, I recommend you compile and run the project.
+If your _Flash Player_ fills up with a light blue color, you have succeeded.
+
+The project already contains all the basic setup code for Starling so that we don't have to start from zero.
+Take a look around; it's really not much code yet!
+Basically, we're just setting up Starling (just as we did in the _Hello World_ example) and load the assets.
+
+=== The Game class
+
+It's time to look at the root object that is going to host _Flappy Starling_.
+
+[source, as3]
+.Game.as
+----
+import starling.display.Sprite;
+import starling.utils.AssetManager;
+
+public class Game extends Sprite // <1>
+{
+    private static var sAssets:AssetManager;
+
+    public function Game()
+    { }
+
+    public function start(assets:AssetManager):void // <2>
+    {
+        sAssets = assets;
+    }
+
+    public static function get assets():AssetManager // <3>
+    {
+        return sAssets;
+    }
+}
+----
+<1> The class extends `starling.display.Sprite`. I'll explain that in just a minute.
+<2> The `start` method will be called from the startup-class. It also passes us all our assets.
+<3> For convenience, I added a static property that allows us to access the assets from anywhere via a simple call to `Game.assets`.
+
+As you can see, there isn't that much going on yet.
+All we are doing at the moment is storing a reference to the `AssetManager` instance that's passed to us from the startup class.
+
+[NOTE]
+.The AssetManager
+====
+Wait, I haven't introduced you to the _AssetManager_ yet!
+That's a very nice helper class that comes with Starling.
+You can stuff all kinds of game assets into it, for example textures, sounds, fonts, etc.
+That way, you don't have to manually load your assets when you need them, but can simply access them via their name.
+====
+
+At this state, our _AssetManager_ instance already contains all the assets we need.
+The startup class (_FlappyStarling_) made those preparations for us.
+
+Time to add some content to our game!
+I'm getting bored of this empty blue canvas.
+Modify the `start` method like this:
+
+[source, as3]
+----
+public function start(assets:AssetManager):void
+{
+    sAssets = assets;
+
+    var skyTexture:Texture = assets.getTexture("sky"); // <1>
+    var sky:Image = new Image(skyTexture); // <2>
+    sky.y = stage.stageHeight - skyTexture.height; // <3>
+    addChild(sky); // <4>
+}
+----
+<1> Get a reference to the sky texture from the _AssetManager_.
+<2> Create an image with that texture.
+<3> Move the image to the very bottom of the stage.
+<4> Add the image to the stage.
+
+When you type that code, be careful when you come to the `Texture` keyword.
+There are several classes named `Texture`, and your IDE will probably ask you which one you want to import.
+
+.Choosing the correct package.
+image::choose-package.png[Package Selection]
+
+When working with Starling, you will usually need to pick a class from the `starling` package.
+Otherwise, the IDE will import the wrong class, and you will run into weird errors.
+If you accidentally picked the wrong class, it's easy to fix: just delete that `import` statement at the top of the file and try again.
+
+When done right, your IDE will add the following _import_ at the top of the file:
+
+[source, as3]
+----
+import starling.textures.Texture;
+----
+
+WARNING: In the source code samples of this book, I'm normally omitting the `import` statements to save space.
+If you run into a compile error even though you typed the code correctly, it's always a good idea to check your imports.
+
+.The game's background image is in place.
+image::flappy/start.png[Game Backround, pdfwidth='6cm']
+
+Finally, we have drawn something to the screen!
+But how did we do that?
+
+* First, we fetched a reference to the sky texture from the _AssetManager_.
+  In Starling, a `Texture` stores the pixels of an image (similar to the `BitmapData` class in classic Flash).
+* Then, we wrapped that texture in an `Image` instance (think `Bitmap` in classic Flash).
+  That's one of several classes that inherit from `starling.display.DisplayObject` -- the building blocks of everything you see on the screen.
+* Now, it's just a matter of moving it to the right position (via the x- and y-coordinates) and adding it to Starling's display list (via `addChild`).
+
+It might be necessary to clarify how we moved the texture to the bottom of the screen.
+The x- and y-coordinates control the position of an object relative to its parent.
+If we left both coordinates at `0`, the image would appear at the top left.
+That's because in Starling, the coordinate system looks like this:
+
+.Starling's coordinate system has its root at the top left.
+image::flappy/coordinate-system.png[coordinate system, 300, pdfwidth='7cm', scaledwidth='380px']
+
+We also accessed the `stage` object and queried its height.
+The _Stage_ describes the area to which everything is rendered; it is the very root of Starling's display list (and parent of the _Game_ instance we are working with right now).
+
+[IMPORTANT]
+====
+Don't confuse this stage with the one provided by "classic" Flash.
+Starling manages its own, completely separate display list.
+====

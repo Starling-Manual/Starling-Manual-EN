@@ -1,0 +1,178 @@
+== Physics
+ifndef::imagesdir[:imagesdir: ../../img]
+
+_Flappy Starling_ ought to be a game, but right now, the level of interactivity is rather ... lacking.
+Thus, the next step should be to make the bird's flight follow some basic physical rules, and to let the player take control.
+
+We have two choices when it comes to physics:
+
+* We could do it ourselves: _Isaac Newton_ came up with a couple of formulas; we can plug those into our code.
+* Or we could add a physics library to our project and let it do the heavy lifting.
+
+Which approach should we use?
+
+Make no mistake: it's actually _really_ hard to create a convincing physics simulation.
+Things get complicated quickly, especially when multiple objects interact with each other.
+The math will become very challenging, and before you know it, the calculations will eat up all available CPU time.
+
+Thus, I'd typically recommend using a turn-key physics engine (like http://napephys.com[Nape]).
+Let it do the work for you while you concentrate on your actual project.
+Games like _Angry Birds_ rely on the realism only such an engine can deliver.
+
+The physics of _Flappy Starling_, on the other hand, are extremely simple.
+We have one flying bird that's affected by gravity and can flap upwards on touch of the screen.
+That's something we can easily do ourselves.
+
+=== What goes up, must come down
+
+A bird that flies in the air is constantly being pulled down by gravity. What does that mean?
+
+Gravity changes the velocity of an object: push a stone off a cliff and its velocity will rise from "zero" (the moment it loses contact) to ... well, "very fast" before it hits the ground.
+The higher the cliff, the faster it will be on impact.
+Each instant it falls, it will be faster than the instant before.
+
+So we make a mental note that we need to store our bird's current velocity somewhere, as well as the acceleration imposed on it by gravity.
+
+The other force acting on the bird is -- the player.
+When he or she touches the screen, the bird is catapulted upwards, i.e. the velocity is set to a fixed value.
+
+Let's incorporate all that into our _World_ class:
+
+[source, as3]
+----
+public class World extends Sprite
+{
+    private static const SCROLL_VELOCITY:Number = 130;
+    private static const FLAP_VELOCITY:Number = -300; // <1>
+    private static const GRAVITY:Number = 800; // <2>
+
+    private var _bird:MovieClip;
+    private var _birdVelocity:Number = 0.0; // <3>
+
+    /* ... */
+}
+----
+<1> The bird's velocity will be set to that value when the user touches the screen.
+<2> The _gravity_ constant stores the acceleration that gravity inflicts on the bird.
+<3> This value will store the current velocity of the bird; it will be updated in each frame.
+
+You might ask why _birdVelocity_ is a scalar, not a vector.
+That's because our bird actually only moves along the y-axis (i.e. vertically).
+There is no horizontal movement -- that's just an illusion we created by moving the ground to the left!
+
+IMPORTANT: Don't forget to assign `birdVelocity` a value (zero, in this case).
+_AS3_ has a very peculiar default value for variables of type _Number_: `NaN` (not a number).
+So much for language designers not having a sense of humor!
+
+The next step is to update `birdVelocity` each frame, and to move the bird by that velocity.
+
+[source, as3]
+----
+public function advanceTime(passedTime:Number):void
+{
+    /* ... */
+
+    advancePhysics(passedTime); // <1>
+}
+
+private function advancePhysics(passedTime:Number):void
+{
+    _bird.y += _birdVelocity * passedTime; // <2>
+    _birdVelocity += GRAVITY * passedTime; // <3>
+}
+
+public function flapBird():void // <4>
+{
+    _birdVelocity = FLAP_VELOCITY;
+}
+----
+<1> The new method `advancePhysics` will contain our tiny physics engine.
+<2> Move the bird along the y-axis according to its current velocity.
+<3> Add the `GRAVITY` to the bird's current velocity.
+<4> This method will be called when the player touches the screen. It instantly sets the bird's velocity to a fixed value.
+
+That's actually all our physics code.
+You probably agree that adding a full-fledged physics library would have been an overkill in this situation!
+
+There's one more step to do: allowing the player to control the bird, i.e. to call that new `flapBird` method.
+Please open up the _Game_ class and make the following modifications:
+
+[source, as3]
+----
+public function start(assets:AssetManager):void
+{
+    /* ... */
+
+    addEventListener(Event.ENTER_FRAME, onEnterFrame);
+    stage.addEventListener(TouchEvent.TOUCH, onTouch); // <1>
+}
+
+private function onTouch(event:TouchEvent):void
+{
+    var touch:Touch = event.getTouch(stage, TouchPhase.BEGAN); // <2>
+    if (touch) _world.flapBird(); // <3>
+}
+----
+<1> Another event listener: this one listens for `TOUCH` events on the stage.
+<2> In Starling, touches pass through different phases. We are interested in the first phase only: `TouchPhase.BEGAN` means that the finger has just begun touching the screen.
+<3> If there is such a touch, we let the bird flap upwards.
+
+Just like we were notified of the passing of time via the `ENTER_FRAME` event, there is an event that's dispatched when the user's finger touches the screen: the `TOUCH` event.
+When such a touch occurs, we let the bird flap upwards.
+
+[NOTE]
+.Touch Events vs. Mouse Events
+====
+We are working on a _Flash_ project, which means that most users will probably use a mouse to flap the bird.
+Why aren't we listening to _mouse_ events, then?
+
+In Starling, _touch_ and _mouse_ input handling is unified.
+When the user clicks on the mouse button, this will be registered just the same as if he had touched the screen at this position.
+The advantage: you can use the same code to handle both mouse and touch input.
+This greatly simplifies porting the game to mobile platforms.
+====
+
+Start the game to check out if everything works.
+The bird will start to fall downwards immediately, and you can bring it up again by clicking on the screen repeatedly.
+Finally, this is starting to feel like a real game, right?
+
+What's a little annoying, though, is that when you're not careful, the bird falls off the bottom of the screen, and it's quite an effort to bring it back up again.
+
+So I'd like to fix that before moving on, even though I'm getting a little ahead of myself.
+What we're going to do is implement the first part of the _collision detection_ logic, a topic we will soon come back to.
+
+Just like the physics code, this needs to be part of the _World_ class.
+
+[source, as3]
+----
+private static const BIRD_RADIUS:Number = 18; // <1>
+
+public function advanceTime(passedTime:Number):void
+{
+    /* ... */
+
+    checkForCollisions(); // <2>
+}
+
+private function checkForCollisions():void
+{
+    var bottom:Number = _ground.y - BIRD_RADIUS; // <3>
+
+    if (_bird.y > bottom) // <4>
+    {
+        _bird.y = bottom;
+        _birdVelocity = 0;
+    }
+}
+----
+<1> Add a new constant at the very top: the radius of the bird's body circle (in points).
+<2> Collision detection is handled in a separate method, called every frame.
+<3> The bird's fall will stop a little upwards of the ground image. (Remember: we moved the bird's pivot point to the center of its body.)
+<4> When we hit bottom, the bird's velocity is set to zero immediately, and we make sure it doesn't move any further down.
+
+That makes playing around with our prototype much easier!
+Granted: when we hit rock bottom, it should actually mean "game over", but the bird just moves on.
+That's the topic of the next chapter!
+
+.Hitting rock bottom.
+image::flappy/rock-bottom.png[Rock Bottom, pdfwidth='6cm']

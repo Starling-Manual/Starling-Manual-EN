@@ -1,0 +1,126 @@
+== Scrolling
+ifndef::imagesdir[:imagesdir: ../../img]
+
+Right now, the bird is flying in empty space.
+We will now add some grassland below to give the player some sense of the bird's height and movement.
+Let's start with the following additions to the _World_ class:
+
+[source, as3]
+----
+private var _ground:Image; // <1>
+
+public function World(width:Number, height:Number)
+{
+    /* ... */
+
+    addBackground();
+    addGround(); // <2>
+    addBird();
+}
+
+private function addGround():void
+{
+    var tile:Texture = Game.assets.getTexture("ground");
+
+    _ground = new Image(tile); // <3>
+    _ground.y = _height - tile.height;
+    addChild(_ground);
+}
+----
+<1> Add a new member variable referencing the ground.
+<2> Add a new helper method that creates the ground.
+<3> Create the ground image and move it to the bottom.
+
+That's quite straight-forward.
+The result will look like this:
+
+.The first tile of the ground.
+image::flappy/ground-1.png[First Ground Tile, pdfwidth='7cm']
+
+Oops! That ground tile is way too short for the width of the screen.
+It occupies just a small area at the very left.
+However, that texture supports tiling, i.e. when you add the same image over and over, it will fill up seamlessly.
+
+One way to fill up the floor would be to simply create several of those images and put them all next to each other.
+That's what you would do in most game engines.
+
+However, there is an even simpler way: Starling's `tileGrid`.
+That's a property that is defined on the `Image` class, and as its name suggests, it was built exactly for the purpose of filling an image with tiles.
+
+It works like this: you assign a rectangle that indicates where a single tile should be placed. Starling will then fill out the rest so that the complete area of the image repeats that pattern.
+
+With that in mind, we modify the code of the `addGround` method slightly.
+
+[source, as3]
+----
+_ground = new Image(tile);
+_ground.y = _height - tile.height;
+_ground.width = _width; // <1>
+_ground.tileGrid = new Rectangle(0, 0, tile.width, tile.height); // <2>
+----
+<1> Make the image as wide as the stage.
+<2> Assign a rectangle that points to the first tile. Starling will add other tiles automatically.
+
+That's quite simple, right?
+Looking at the output, it seems that did the trick!
+
+.The same tile, repeated along the full width.
+image::flappy/ground-2.png[All Ground Tiles, pdfwidth='7cm']
+
+=== Animating the Ground
+
+That's all still a rather static business, though.
+Instead, we want to create the impression that the camera is following a bird that's flying to the right.
+To do that, we will move the ground slowly to the _left_, just like an endless ribbon.
+
+Had we built the ground from separate images, this would be quite painful.
+
+* In each frame, move all those images a little to the left.
+* If an image moves out of the visible area, put it to the very right.
+* That way, we have an endless stream of tiles.
+
+You might run into that situation one day -- it's rare that the ground is built from just a single tile.
+However, in this situation, with our `tileGrid` in place, it's much simpler: we let Starling do the work for us.
+
+Our task:
+
+* In each frame, move the (virtual) `tileGrid` rectangle a little to the left.
+* That's it.
+
+Our existing `advanceTime` method will pull that off.
+
+[source, as3]
+----
+public class World extends Sprite
+{
+    private static const SCROLL_VELOCITY:Number = 130; // <1>
+
+    /* ... */
+
+    public function advanceTime(passedTime:Number):void
+    {
+        advanceGround(passedTime); // <2>
+        _bird.advanceTime(passedTime);
+    }
+
+    private function advanceGround(passedTime:Number):void
+    {
+        var distance:Number = SCROLL_VELOCITY * passedTime; // <3>
+
+        _ground.tileGrid.x -= distance; // <4>
+        _ground.tileGrid = _ground.tileGrid; // <5>
+    }
+----
+<1> A constant defines the speed of movement: 130 points per second.
+<2> The new method `advanceGround` will do the work.
+<3> Since `passedTime` is given in seconds, a simple multiplication will yield the passed distance.
+<4> Move `tileGrid.x` to the left.
+<5> That's a small API oddity: for the changes to show up, `tileGrid` has to be re-assigned.
+
+// TODO: an image showing how the tile moves to the left would be useful.
+
+There really isn't much to it: all that we are doing is reducing the value of `tileGrid.x` a little in each frame.
+The result is a neat, endless animation of the ground ribbon.
+
+NOTE: You'll notice that the we are not moving the blue background in any way.
+That's intentional: by keeping it at a fixed position, we're creating the illusion that it is very far away.

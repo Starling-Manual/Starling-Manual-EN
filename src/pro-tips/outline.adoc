@@ -1,0 +1,36 @@
+=== Outline
+
+We already learned about two techniques to add outlines to fonts:
+
+* When creating the bitmap font texture, bake the outline right in.
+* Use a <<Distance Field Rendering, distance field font>>.
+
+Unfortunately, both of those techniques are not an option for _TextFields_ using _TrueType_ fonts.
+However, there is a way to add an outline at runtime to any kind of object: by "abusing" the _GlowFilter_ slightly.
+
+The trick is to use an alpha-value that's higher than `1.0`; much higher, in fact.
+The _GlowFilter_ is implemented in a way that when `alpha` exceeds `1.0`, it acts as a strength-multiplier, making the edges of the glow harder.
+
+For example, to add a black outline to an object, set up the filter like this:
+
+[source, as3]
+----
+object.filter = new GlowFilter(0x0, 50, 1.0, 1.0);
+----
+
+For reference, these are the arguments used in that sample:
+
+[horizontal]
+color:: In this case, pure black (`0x0`).
+alpha:: The higher the value, the more crisp the edge will be; too high values will produce jagged edges, though. `50` worked best in my tests.
+blur::  A value of `1.0` is sufficient in most cases. Again, using a too high value might produce artifacts.
+resolution:: For outlines, I recommend to use the full resolution (`1.0`).
+
+The result looks like this:
+
+.Abusing the _GlowFilter_ for an outline.
+image::outline.png[Outline, 250, pdfwidth='7.5cm', scaledwidth='250px']
+
+Of course, that works not just for _TextFields_, but for any kind of display object.
+
+TIP: Remember to `cache()` the filter to spare valuable draw calls!

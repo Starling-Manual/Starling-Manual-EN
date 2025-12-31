@@ -1,0 +1,94 @@
+=== Loading Textures asynchronously
+
+When an app or game uses just a moderate number of textures, you can load everything at launch (maybe while showing a short loading animation).
+Often, though, the size and amount of textures will be too big to fit everything into memory simultaneously.
+In that case, you have to load textures on demand, right when you need them.
+
+The problem: by default, loading happens synchronously, causing a hiccup while the texture is being uploaded to graphics memory.
+Especially when the texture is big (think: texture atlas), that pause will be noticeable.
+
+The solution is to load textures asynchronously instead.
+That way, the runtime will create the texture in a separate thread, leaving Starling in a responsive state.
+
+==== ATF Textures
+
+_Stage3D_ has always supported asynchronous loading of ATF textures.
+It works like this:
+
+[source, as3]
+----
+var atfBytes:ByteArray = loadAtfData(); // <1>
+Texture.fromAtfData(atfBytes, 1, true, // <2>
+    function(texture:Texture):void // <3>
+    {
+        var image:Image = new Image(texture);
+        addChild(image);
+    });
+----
+<1> The actual data may be embedded or be loaded from an URL.
+<2> The _ByteArray_ is passed to `Texture.fromAtfData` (parameters 2 and 3 set up scale factor and mipmap support.).
+<3> If the final parameter is a function, the method will switch to asynchronous loading.
+    The texture is ready as soon as the function is called.
+
+WARNING: You must not use the texture before the callback is executed.
+
+The ATF format guarantees economical memory usage, so it is often a great choice.
+On the other hand, it's not perfectly suited for all kinds of textures.
+
+==== Bitmap Textures
+
+That's why AIR 24 finally added asynchronous texture loading for standard bitmap textures.
+Beginning with Starling 2.2, you can make use of this feature in your games and apps.
+
+NOTE: AIR 24 supports asynchronous texture upload only for mobile targets.
+For desktop support, you need to use at least AIR 27.
+
+The code looks quite similar!
+
+[source, as3]
+----
+var bitmap:Bitmap = loadBitmap(); // <1>
+Texture.fromBitmap(
+    bitmap, false, false, 1.0, "bgra", false, // <2>
+    function(texture:Texture):void // <3>
+    {
+        var image:Image = new Image(texture);
+        addChild(image);
+    });
+----
+<1> Again, the data might be embedded or loaded from an URL.
+<2> Annoyingly, you need to pass a lot of parameters to the factory method.
+    You can use the default values for most of them (except maybe for the `scale` parameter).
+<3> The asynchronous callback works just like the one for ATF textures.
+
+All in all, the whole process is almost identical to how it's done for ATF textures.
+
+When you create the bitmap from a _JPG_ or _PNG_ file, you might still notice a small hiccup, though.
+That's because the runtime has to decode the file -- another synchronous process.
+It's possible to optimize that part of the loading process, too, by setting up the correct _ImageDecodingPolicy_.
+
+[source, as3]
+----
+var context:LoaderContext = new LoaderContext(); // <1>
+context.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD; // <2>
+
+var loader:Loader = new Loader(); // <3>
+loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
+loader.load(new URLRequest("http://i.imgur.com/4ISGbAZ.jpg"), context); // <4>
+
+function onComplete(event:Object):void
+{
+    var bitmap:Bitmap = event.target.content as Bitmap;
+    // ...
+}
+----
+<1> The _LoaderContext_ defines options that indicate how a file should be loaded.
+<2> For our cause, we set the _ImageDecodingPolicy_ to `ON_LOAD`.
+    That will optimize the decoding process (at the price of a slightly higher memory consumption).
+<3> The actual loading is handled by the _Loader_ class.
+<4> Note that `context` is passed to the `load` method.
+
+If you load the bitmap that way and convert it to a texture with the _async_-callback shown above, you will have the smoothest possible result, even for a big atlas texture.
+
+TIP: The _AssetManager_ makes use of these best practices, too.
+Thus, you can also simply rely on that class to load your textures; the results should be similar.

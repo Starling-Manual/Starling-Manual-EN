@@ -1,0 +1,87 @@
+=== Animating Text
+
+Most games count the player's score in some way.
+By awarding points, the player gets a sense of achievement and progress; add a leader board, and players can compete with each other.
+
+To keep the player informed about the current score, there is probably a _TextField_ somewhere on the stage.
+When the score changes, some code similar to the following will be executed:
+
+[source, as3]
+----
+_score += 100;
+_scoreTextField.text = _score.toString();
+----
+
+That works, but it's also a little dull.
+Since the score changes in an instant, it's likely that the player does not even notice the change.
+
+If the score would be raised in small steps, over the course of (say) a second, the change would be much more gratifying.
+The player could literally watch the additional points appear on the counter.
+But how best to achieve that?
+
+The easiest way to animate things in Starling is, of course, to use a tween.
+A tween, however, can only animate _numerical_ properties; that rules out the `text` property (a _String_), right?
+
+Well, not necessarily!
+All we have to do is create a numeric property that wraps the String access internally.
+For example, you could add the following property to the sprite containing the _TextField_:
+
+[source, as3]
+----
+public function get score():int { return _score; }
+public function set score(value:int):void
+{
+    _score = value;
+    _scoreTextField.text = value.toString();
+}
+----
+
+Now we _do_ have a numeric property, and it can be animated just like any other.
+
+[source, as3]
+----
+juggler.tween(this, 1.0, { score: this.score + 100 });
+----
+
+This code raises the score in small steps over the course of a second, until it settles on the new value.
+That's just what we wanted, and a quick test shows that it looks really neat (especially considering the little effort it took).
+
+You need to be aware, though, that this code may cause a subtle problem when score changes occur in quick succession.
+
+Let's say the player scored 100 points, and you already started a tween that raises the player's score from 0 to 100.
+Now, what happens if the player scores another 100 points _before_ that animation is finished?
+
+[source, as3]
+----
+trace(this.score); // e.g. '87' (still being animated!)
+juggler.tween(this, 1.0, { score: this.score + 100 });
+----
+
+Instead of a score of 200, we end up with a score of just 187!
+To avoid such side effects, it's better to separate the score that's currently _displayed_ from the one that actually counts.
+My recommendation is to create a property like the following instead:
+
+[source, as3]
+----
+public function get displayedScore():int
+{
+    return int.parse(_scoreTextField.text);
+}
+
+public function set displayedScore(value:int):void
+{
+    _scoreTextField.text = value.toString();
+}
+----
+
+That way, you can access the actual score  (`this.score`) separately from the one that's currently displayed (`this.displayedScore`).
+With that strategy, you won't run into any problems.
+
+[source, as3]
+----
+this.score += 100;
+juggler.tween(this, 1.0, { displayedScore: this.score });
+
+trace(this.score);          // -> 200
+trace(this.displayedScore); // -> 100
+----

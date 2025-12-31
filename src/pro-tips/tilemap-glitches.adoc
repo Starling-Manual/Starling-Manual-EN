@@ -1,0 +1,58 @@
+=== Tilemap Glitches
+
+If you followed the last section and just created your tilemap, you might have run into a problem: in some situations, the tile edges become visible.
+Like here:
+
+.Tile bounds becoming visible.
+image::tile-bounds-visible.png[Tile bounds visible, 512]
+
+It doesn't seem to make any sense, because you perfectly aligned the objects next to each other, and each tile ends with the same flat color.
+Still, in some moments, the edges become visible -- how can that be?
+
+That's an issue you will run into with almost all GPU-powered graphics engines.
+To get to the root of the problem, let's look at the edge of a single tile in great magnification.
+We should also turn off `textureSmoothing`.
+
+[source, as3]
+----
+tile = new Image(tileTexture);
+tile.textureSmoothing = TextureSmoothing.NONE;
+----
+
+.Looking at the edge of a tile under the microscope.
+image::texture-sampling.png[Texture Sampling, 512, pdfwidth='10cm']
+
+On the left, you see a corner of the magnified tile with texture smoothing disabled, making the actual pixel bounds visible.
+On the right, the same corner is drawn with the default texture smoothing (`BILINEAR`).
+The actual pixel bounds are highlighted with a grid.
+
+As you can see, the further you get to the edges, the brighter the pixels become.
+That's exactly the reason our tiles do not line up seamlessly!
+Where is that light green color coming from?
+
+By default, Starling uses "bilinear filtering" for all texture lookups.
+That means that each time the GPU samples a texture, it takes four of its pixels into account.
+
+For example, in the corner area, each texture lookup will combine all texels marked with "×".
+This means that we are actually reaching beyond the bounds of the tile!
+Since the tile was probably taken from a texture atlas, we're talking about empty space or even adjacent tiles.
+
+Don't think that you're safe if you don't magnify the tiles, by the way.
+If the tiles are not perfectly aligned with the screen pixels, the same problem will occur.
+
+However, now that we know what's causing the problem, we can do something about it.
+Here are a few workarounds that will fix your tile maps.
+
+[loweralpha]
+. Draw the tiles with `TextureSmoothing.NONE`.
+  If you need to zoom in on the tiles, though, gaps might still reappear.
+. Activate `pixelSnapping` for each tile.
+  Again, this does not help in all cases: scaling or rotating is out of the question.
+. Extrude the tile textures, i.e. repeat the border pixels all around.
+  This is my recommendation, and it will fix the issue almost universally.
+  With atlas generators like _TexturePacker_, this is just a matter of turning a switch.
+
+That should do it!
+
+.Tile bounds, begone!
+image::tile-bounds-invisible.png[Tile bounds invisible, 512]

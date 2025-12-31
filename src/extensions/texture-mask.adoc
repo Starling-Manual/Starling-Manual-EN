@@ -1,0 +1,40 @@
+== Texture Mask
+
+As you already know, the `mask` property is Starling's way of providing stencil masks for display objects.
+Typically, a mask is a _Canvas_ object that contains a simple vector shape.
+
+One problem with stencil masks is that they do not take any texture data into account; only the shape of the polygon counts.
+That makes it difficult to create masks with shapes that are more complex than the primitives provided by the _Canvas_ class.
+This class solves this problem: it allows you to use a texture's alpha channel as a mask!
+
+The extension is implemented as a simple _mesh style_.
+Its task is rather morbid: _kill_ every pixel with an alpha value below a certain threshold.
+
+NOTE: The _AGAL_ opcode for this operation is literally `kil`.
+
+This does not simply mean that the pixels will be rendered with an alpha value of zero -- it means that they will not be rendered _at all_.
+The result is that the stencil buffer won't be modified, either; and that's the whole idea behind this style.
+
+[source, as3]
+----
+var maskTexture:Texture = assets.getTexture("mask"); // <1>
+var mask:Image = new Image(maskTexture);
+var maskStyle:TextureMaskStyle = new TextureMaskStyle();
+mask.style = maskStyle;
+
+var sprite:Sprite = createSprite(); // <2>
+sprite.mask = mask;
+addChild(sprite);
+
+style.threshold = 0.3; // <3>
+----
+<1> The actual mask is an image that uses the _TextureMaskStyle_ to display the mask texture.
+<2> This sprite contains the contents that we want to be masked.
+    We assign our new mask to the respective property.
+<3> Change the threshold to fine-tune the result; any alpha value below this number will be masked.
+
+If you have problems understanding what this style really does, try displaying the `mask` image directly (without assigning it to `sprite.mask`).
+You will see that all pixels with alpha values below the given threshold will vanish completely.
+
+.Here, the threshold of a texture mask is animated over time.
+image::texture-mask.png[Texture Mask, 600]
