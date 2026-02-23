@@ -13,8 +13,9 @@ The first demos of Starling always included some particle system shenanigans.
 Finding the perfect settings for a particle effect is not easy.
 For that reason, there are tools that allow you to modify the settings and preview the resulting particle system in real time.
 
-Particle Editor::   A free online tool from _onebyonedesign_, built right with Starling!
-                    To try it out, just head to http://onebyonedesign.com/flash/particleeditor/[onebyonedesign.com].
+Particle Editor::   An open source editor from _onebyonedesign_, built right with Starling!
+                    The fork by _2jfw_ even contains a precompiled Windows-executable.
+                    Find it here: https://github.com/2jfw/Starling-Particle-Editor[github.com/2jfw/Starling-Particle-Editor]
 Particle Designer:: The original from _71squared_, coming with a large online library of sample emitters.
                     Warmly recommended for any _macOS_ user! Get it on https://71squared.com/particledesigner[71squared.com].
 
