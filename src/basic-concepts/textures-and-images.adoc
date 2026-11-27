@@ -206,10 +206,11 @@ At runtime, you can reference these _SubTextures_ by their name and they will ac
 
 But how do you combine all your textures into such an atlas?
 Thankfully, you don't have to do that manually; there are lots of tools around that will help you with that task.
-Here are two candidates, but _Google_ will bring up many more.
+Here are a few candidates, but _Google_ will bring up many more.
 
 * https://www.codeandweb.com/texturepacker/[TexturePacker] is my personal favorite. You won't find any tool that allows for so much control over your sprite sheets, and its Starling support is excellent (ATF textures, anyone?).
 * http://renderhjs.net/shoebox/[Shoebox] is a free tool built with _AIR_. While it doesn't have as many options for atlas creation as _TexturePacker_, it contains lots of related functionality, like bitmap font creation or sprite extraction.
+* https://spritesheet.dev/[SpriteSheet.dev] is a free web tool that runs in the browser. It packs separate images or an animated GIF into one atlas and exports the XML format shown above.
 
 ==== Using the Atlas
 
